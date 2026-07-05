@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChessScope — Tournament Prep</title>
+    <meta
+      name="description"
+      content="Local-first desktop app for chess tournament preparation. Import games, analyze with Stockfish, scout opponents."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0f1117;
+        --surface: #1a1d27;
+        --border: #2a2f3d;
+        --text: #e8eaef;
+        --muted: #9aa3b5;
+        --accent: #6c9eff;
+        --accent-dim: #4a7ad4;
+        --green: #4ade80;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+
+      header {
+        margin-bottom: 2.5rem;
+      }
+
+      .logo {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .logo span {
+        color: var(--accent);
+      }
+
+      .tagline {
+        margin-top: 0.5rem;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .hero {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .hero p {
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+      }
+
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      a.btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: background 0.15s, transform 0.1s;
+      }
+
+      a.btn:active {
+        transform: scale(0.98);
+      }
+
+      a.btn-primary {
+        background: var(--accent);
+        color: #0f1117;
+      }
+
+      a.btn-primary:hover {
+        background: var(--accent-dim);
+        color: #fff;
+      }
+
+      a.btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      a.btn-secondary:hover {
+        border-color: var(--muted);
+      }
+
+      .note {
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      h2 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 0.75rem;
+      }
+
+      ul.features {
+        list-style: none;
+        margin-bottom: 2rem;
+      }
+
+      ul.features li {
+        padding: 0.5rem 0;
+        padding-left: 1.25rem;
+        position: relative;
+        color: var(--muted);
+      }
+
+      ul.features li::before {
+        content: "♟";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-size: 0.75rem;
+        top: 0.55rem;
+      }
+
+      ol.steps {
+        margin-left: 1.25rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      ol.steps li {
+        margin-bottom: 0.5rem;
+      }
+
+      ol.steps code {
+        background: var(--surface);
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.85em;
+        border: 1px solid var(--border);
+      }
+
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      footer a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="logo">Chess<span>Scope</span></div>
+        <p class="tagline">Local-first tournament prep for serious players</p>
+      </header>
+
+      <section class="hero">
+        <p>
+          Import your Chess.com and Lichess games, analyze with Stockfish, scout
+          opponents, and train on your own blunders — all on your machine.
+        </p>
+        <div class="buttons">
+          <a
+            class="btn btn-primary"
+            id="download-btn"
+            href="https://github.com/BalasBack/ChessScope/releases/latest"
+          >
+            Download for Windows
+          </a>
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/BalasBack/ChessScope"
+            target="_blank"
+            rel="noopener"
+          >
+            View on GitHub
+          </a>
+        </div>
+        <p class="note" id="download-note">
+          Requires Windows 10+. First release? Build locally with
+          <code>npm run tauri build</code> — see README.
+        </p>
+      </section>
+
+      <h2>Features</h2>
+      <ul class="features">
+        <li>Game import from Chess.com &amp; Lichess</li>
+        <li>Stockfish analysis &amp; blunder training</li>
+        <li>USCF / FIDE / online opponent scouting</li>
+        <li>Opening stats &amp; dashboard</li>
+        <li>AI coach via local Ollama (optional)</li>
+      </ul>
+
+      <h2>Quick start (developers)</h2>
+      <ol class="steps">
+        <li>Clone the repo and run <code>npm install</code></li>
+        <li>Download Stockfish: <code>scripts/download-stockfish.ps1</code></li>
+        <li>Run <code>npm run tauri dev</code></li>
+      </ol>
+
+      <footer>
+        <p>
+          Open source —
+          <a href="https://github.com/BalasBack/ChessScope">BalasBack/ChessScope</a>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

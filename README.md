@@ -48,6 +48,27 @@ npm run dev:app
 npm run tauri build
 ```
 
+Installer output: `src-tauri/target/release/bundle/` (`.msi` or `.exe` on Windows).
+
+## Website (GitHub Pages)
+
+A simple landing page lives in `docs/index.html`. To publish it:
+
+1. Push this repo to GitHub (if you haven’t already).
+2. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from branch**
+   - Branch: `main`
+   - Folder: **`/docs`**
+   - Save
+3. After ~1 minute, the site is live at  
+   **https://balasback.github.io/ChessScope/**
+
+### Ship a Windows download
+
+1. Run `npm run tauri build`
+2. On GitHub: **Releases → Create a new release** → tag e.g. `v0.1.0`
+3. Upload the `.msi` or `.exe` from `src-tauri/target/release/bundle/`
+4. The landing page **Download** button already points to `/releases/latest`
+
 ## Usage
 
 1. Open **Settings** and enter your Chess.com / Lichess usernames and USCF ID
