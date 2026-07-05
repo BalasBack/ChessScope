@@ -1,0 +1,30 @@
+[package]
+name = "chessscope"
+version = "0.1.0"
+description = "ChessScope — Tournament prep desktop app"
+authors = ["ChessScope"]
+edition = "2021"
+
+[lib]
+name = "chessscope_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+tokio = { version = "1", features = ["full"] }
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+futures-util = "0.3"
+dirs = "6"
+shakmaty = "0.28"
+pgn-reader = "0.26"
+regex = "1"
+urlencoding = "2"
