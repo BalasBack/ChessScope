@@ -58,6 +58,32 @@ export function parsePgnMoves(pgn: string): string[] {
   return parsePgnGame(pgn).moves;
 }
 
+export type ParsedMoveDetail = {
+  san: string;
+  uci: string;
+  fenBefore: string;
+};
+
+export function parsePgnMovesDetailed(pgn: string): ParsedMoveDetail[] {
+  try {
+    const chess = new Chess();
+    chess.loadPgn(cleanPgn(pgn), { strict: false });
+    const sans = chess.history();
+    chess.reset();
+    const out: ParsedMoveDetail[] = [];
+    for (const san of sans) {
+      const fenBefore = chess.fen();
+      const m = chess.move(san);
+      if (!m) break;
+      const uci = m.from + m.to + (m.promotion ?? "");
+      out.push({ san, uci, fenBefore });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 export function fenAtMoveIndex(pgn: string, moveIndex: number): string {
   const { fens } = parsePgnGame(pgn);
   const idx = Math.max(0, Math.min(moveIndex, fens.length - 1));

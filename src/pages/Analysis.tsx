@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
 import {
   Cpu,
   ChevronLeft,
@@ -8,7 +7,8 @@ import {
   SkipForward,
   Swords,
 } from "lucide-react";
-import { api, AnalysisProgress, GameAnalysis, GameRecord, MoveAnalysis } from "../lib/tauri";
+import { subscribeAnalysisProgress } from "../lib/analysis-progress";
+import { api, GameAnalysis, GameRecord, MoveAnalysis } from "../lib/tauri";
 import { ChessBoardView } from "../components/ChessBoard";
 import { Button } from "../components/ui";
 import {
@@ -97,14 +97,11 @@ export function Analysis() {
   }, [loadGames]);
 
   useEffect(() => {
-    const unlisten = listen<AnalysisProgress>("analysis-progress", (e) => {
-      if (selected && e.payload.game_id === selected.id) {
-        setProgress(e.payload.message);
+    return subscribeAnalysisProgress((payload) => {
+      if (selected && payload.game_id === selected.id) {
+        setProgress(payload.message);
       }
     });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
   }, [selected]);
 
   useEffect(() => {

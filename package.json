@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:web": "tsc && vite build --mode web && node scripts/copy-spa-404.mjs",
     "preview": "vite preview",
+    "preview:web": "vite preview --outDir docs --base /ChessScope/",
     "tauri": "tauri",
     "dev:app": "powershell -ExecutionPolicy Bypass -File scripts/dev.ps1"
   },
@@ -20,6 +22,7 @@
     "react-chessboard": "^5.10.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.18.1",
+    "stockfish": "^18.0.8",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

@@ -4,22 +4,29 @@ import tailwindcss from "@tailwindcss/vite";
 
 const host = process.env.TAURI_DEV_HOST;
 
-export default defineConfig(async () => ({
-  plugins: [react(), tailwindcss()],
-  clearScreen: false,
-  server: {
-    port: 1420,
-    strictPort: true,
-    host: host || false,
-    hmr: host
-      ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
+export default defineConfig(({ mode }) => {
+  const isWebDeploy = mode === "web";
+  return {
+    plugins: [react(), tailwindcss()],
+    base: isWebDeploy ? "/ChessScope/" : "/",
+    build: isWebDeploy
+      ? { outDir: "docs", emptyOutDir: true }
       : undefined,
-    watch: {
-      ignored: ["**/src-tauri/**"],
+    clearScreen: false,
+    server: {
+      port: 1420,
+      strictPort: true,
+      host: host || false,
+      hmr: host
+        ? {
+            protocol: "ws",
+            host,
+            port: 1421,
+          }
+        : undefined,
+      watch: {
+        ignored: ["**/src-tauri/**"],
+      },
     },
-  },
-}));
+  };
+});

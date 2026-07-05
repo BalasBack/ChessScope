@@ -1,27 +1,38 @@
 # ChessScope
 
-**ChessScope** is a local-first desktop app for serious chess tournament preparation. It analyzes your Chess.com and Lichess games, links your USCF profile, provides an offline AI coach via Ollama, and helps scout opponents before events.
+**ChessScope** is tournament prep software for serious chess players — available as a **Windows desktop app** and a **web app**.
 
-## Features (v0.1)
+| | Desktop (Windows) | Web |
+|---|---|---|
+| **Run** | Install `.msi` / `.exe` or `npm run tauri dev` | [balasback.github.io/ChessScope](https://balasback.github.io/ChessScope/) |
+| **Storage** | Local SQLite | Browser IndexedDB |
+| **Analysis** | Stockfish (native) | Stockfish WASM |
+| **AI Coach** | Ollama (local LLM) | Desktop only |
+| **Opponent scout** | USCF, FIDE, ChessGames, Lichess, Chess.com | Lichess & Chess.com |
 
-- Import games from **Chess.com** and **Lichess** with local SQLite caching
+## Features
+
+- Import games from **Chess.com** and **Lichess**
 - **Dashboard** with opening repertoire, win rates, and time control breakdown
 - **Stockfish analysis** with move classifications (best → blunder)
 - **Training** puzzles from your own blunders
 - **Game review** with move navigation and eval display
-- **AI Coach** powered by local **Ollama** LLM
-- **USCF profile lookup** by member ID (MUIR API)
-- Opponent scout foundation (full ChessGames/FIDE dossiers coming soon)
+- **AI Coach** (desktop) powered by local **Ollama**
+- **USCF profile lookup** (desktop)
+- **Opponent scout** — full dossiers on desktop; basic import on web
 
-## Prerequisites
+---
+
+## Desktop app (Windows)
+
+### Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+
 - [Rust](https://rustup.rs/) (`rustup default stable-x86_64-pc-windows-msvc`)
-- **Visual Studio Build Tools** with **Desktop development with C++** workload  
-  (Visual Studio Installer → Modify → check "Desktop development with C++")
+- **Visual Studio Build Tools** with **Desktop development with C++**
 - [Ollama](https://ollama.com/) (optional, for AI coach): `ollama pull llama3.1`
 
-## Stockfish Setup
+### Stockfish (desktop)
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/download-stockfish.ps1
@@ -29,57 +40,72 @@ powershell -ExecutionPolicy Bypass -File scripts/download-stockfish.ps1
 
 Or install Stockfish to PATH from [stockfishchess.org](https://stockfishchess.org/download/).
 
-## Development
+### Development
 
-```bash
+```powershell
 npm install
 npm run tauri dev
 ```
 
-Or use the helper script (auto-detects `vcvars64.bat`):
+Or:
 
 ```powershell
 npm run dev:app
 ```
 
-## Build
+You can also open `http://localhost:1420` in a browser during dev — it uses the web backend (IndexedDB + WASM) automatically when not running inside Tauri.
 
-```bash
+### Build installer
+
+```powershell
 npm run tauri build
 ```
 
-Installer output: `src-tauri/target/release/bundle/` (`.msi` or `.exe` on Windows).
+Output: `src-tauri/target/release/bundle/` (`.msi` or `.exe`).
 
-## Website (GitHub Pages)
+Upload to **GitHub Releases** so the web app’s download link works.
 
-A simple landing page lives in `docs/index.html`. To publish it:
+---
 
-1. Push this repo to GitHub (if you haven’t already).
-2. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from branch**
-   - Branch: `main`
-   - Folder: **`/docs`**
-   - Save
-3. After ~1 minute, the site is live at  
-   **https://balasback.github.io/ChessScope/**
+## Web app (GitHub Pages)
 
-### Ship a Windows download
+The full UI runs in the browser — import, dashboard, analysis, training, and opponent search (Lichess/Chess.com). Data stays in your browser; nothing is sent to a ChessScope server.
 
-1. Run `npm run tauri build`
-2. On GitHub: **Releases → Create a new release** → tag e.g. `v0.1.0`
-3. Upload the `.msi` or `.exe` from `src-tauri/target/release/bundle/`
-4. The landing page **Download** button already points to `/releases/latest`
+### Build & deploy
+
+```powershell
+npm run build:web
+git add docs/
+git commit -m "Deploy web app"
+git push
+```
+
+On GitHub: **Settings → Pages → Deploy from branch `main`, folder `/docs`**.
+
+Live at: **https://balasback.github.io/ChessScope/**
+
+After changing frontend code, run `npm run build:web` again and push `docs/`.
+
+### Preview locally
+
+```powershell
+npm run build:web
+npm run preview:web
+```
+
+---
 
 ## Usage
 
-1. Open **Settings** and enter your Chess.com / Lichess usernames and USCF ID
-2. Click **Sync Games** on the Dashboard
-3. Review stats and games in **Analysis**
-4. Chat with the **AI Coach** (requires Ollama running)
-5. Look up opponents by **USCF ID** in **Opponent Scout**
+1. Open **Settings** and enter your Chess.com / Lichess usernames (and USCF ID on desktop)
+2. **Sync games** from the Dashboard
+3. Review stats and run **Analysis** with Stockfish
+4. Train on your **blunders** in Training
+5. **Scout opponents** before events (desktop: all sources; web: Lichess/Chess.com)
+6. Chat with the **AI Coach** on desktop (requires Ollama)
 
-## Tech Stack
+## Tech stack
 
-- Tauri 2 + Rust backend
-- React + TypeScript + Tailwind CSS
-- SQLite (local cache)
-- Stockfish (planned), Ollama (AI coach)
+- **Desktop:** Tauri 2 + Rust, SQLite, native Stockfish, Ollama
+- **Web:** React + TypeScript + Tailwind, IndexedDB, Stockfish WASM
+- **Shared:** React UI, chess.js, react-chessboard

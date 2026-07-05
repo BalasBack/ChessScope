@@ -8,6 +8,7 @@ import {
   Settings,
   Crown,
 } from "lucide-react";
+import { isWebApp } from "../lib/api";
 import { cn } from "../lib/utils";
 
 const nav = [
@@ -54,6 +55,20 @@ export function Layout() {
         </nav>
       </aside>
       <main className="flex flex-1 flex-col overflow-hidden">
+        {isWebApp() && (
+          <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/10 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
+            Web mode — games stay in your browser. AI Coach needs the{" "}
+            <a
+              href="https://github.com/BalasBack/ChessScope/releases"
+              className="text-[var(--color-accent)] underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              desktop app
+            </a>
+            .
+          </div>
+        )}
         <Outlet />
       </main>
     </div>
