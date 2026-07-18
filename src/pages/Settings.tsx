@@ -21,6 +21,7 @@ export function SettingsPage() {
   });
   const [ollama, setOllama] = useState<OllamaStatus | null>(null);
   const [stockfish, setStockfish] = useState<StockfishStatus | null>(null);
+  const [stockfishChecking, setStockfishChecking] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [repairing, setRepairing] = useState(false);
@@ -33,7 +34,11 @@ export function SettingsPage() {
 
   const refreshStatus = () => {
     api.checkOllama().then(setOllama);
-    api.checkStockfish().then(setStockfish);
+    setStockfishChecking(true);
+    api
+      .checkStockfish()
+      .then(setStockfish)
+      .finally(() => setStockfishChecking(false));
   };
 
   const save = async () => {
@@ -227,7 +232,9 @@ export function SettingsPage() {
         >
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
-              {stockfish?.available ? (
+              {stockfishChecking ? (
+                <span className="text-[var(--color-muted)]">Checking…</span>
+              ) : stockfish?.available ? (
                 <>
                   <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span className="text-emerald-400">Ready</span>
@@ -243,7 +250,7 @@ export function SettingsPage() {
                 {stockfish.path}
               </p>
             )}
-            {!stockfish?.available && (
+            {!stockfishChecking && !stockfish?.available && (
               <p className="text-xs text-[var(--color-muted)]">
                 {isWebApp()
                   ? "Hard-refresh (Ctrl+Shift+R). If this persists, the site needs a fresh deploy (npm run build:web + push)."
@@ -254,22 +261,34 @@ export function SettingsPage() {
         </Card>
 
         <Card
-          title={isWebApp() ? "AI coach (browser)" : "AI coach (Ollama)"}
+          title={isWebApp() ? "AI coach (free cloud)" : "AI coach (Ollama)"}
           action={
-            !isWebApp() ? (
-              <Button variant="ghost" onClick={refreshStatus} className="text-xs px-2 py-1">
-                Refresh
-              </Button>
-            ) : undefined
+            <Button variant="ghost" onClick={refreshStatus} className="text-xs px-2 py-1">
+              Refresh
+            </Button>
           }
         >
           <div className="space-y-3">
             {isWebApp() ? (
-              <p className="text-sm text-[var(--color-muted)]">
-                Website AI Coach runs entirely in the visitor&apos;s browser — no API key or
-                signup. The first visit downloads a small model once (then it&apos;s cached).
-                Open the <strong>AI Coach</strong> page to start.
-              </p>
+              <>
+                <div className="flex items-center gap-2 text-sm">
+                  {ollama?.connected ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
+                      <span className="text-emerald-400">Ready</span>
+                    </>
+                  ) : (
+                    <span className="text-amber-400">
+                      {ollama?.error ?? "Checking…"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-[var(--color-muted)]">
+                  Website AI Coach uses a free cloud API — no signup or API key. Open{" "}
+                  <strong>AI Coach</strong> and ask a question; replies usually take a few
+                  seconds.
+                </p>
+              </>
             ) : (
               <>
                 <div className="flex items-center gap-2 text-sm">

@@ -16,13 +16,24 @@ function workerBaseUrl(): URL {
 
 /**
  * Stockfish lite-single expects Worker URL hash: #<encodedWasmUrl>,worker
- * so self.location.hash is available inside the worker. Do NOT wrap in a blob
- * worker — that loses the hash and breaks WASM loading.
  */
 function createStockfishWorker(): Worker {
   const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
   const wasmUrl = new URL("stockfish-18-lite-single.wasm", workerBaseUrl()).href;
   return new Worker(`${jsUrl}#${encodeURIComponent(wasmUrl)},worker`);
+}
+
+function resetWorkerState() {
+  try {
+    worker?.terminate();
+  } catch {
+    /* ignore */
+  }
+  worker = null;
+  ready = false;
+  lines = [];
+  waiters = [];
+  initError = null;
 }
 
 function getWorker(): Worker {
@@ -39,7 +50,7 @@ function getWorker(): Worker {
   worker.onerror = (ev) => {
     initError =
       (ev as ErrorEvent).message ||
-      "Stockfish worker failed. Try Ctrl+Shift+R or the desktop app.";
+      "Stockfish worker failed to load the WASM engine.";
   };
   worker.onmessage = (e: MessageEvent<string>) => {
     const line = typeof e.data === "string" ? e.data : String(e.data);
@@ -76,12 +87,15 @@ async function ensureReady(): Promise<void> {
   if (ready) return;
   if (initError) throw new Error(initError);
 
-  // Kick the worker and wait for uciok
   getWorker();
+  // Give WASM a moment to boot before UCI
+  await new Promise((r) => setTimeout(r, 250));
+  if (initError) throw new Error(initError);
+
   await send("uci");
   for (;;) {
     if (initError) throw new Error(initError);
-    const line = await readLine(45_000);
+    const line = await readLine(60_000);
     if (line.includes("uciok")) break;
   }
   await send("isready");
@@ -158,6 +172,11 @@ function playerCp(
   return forWhitePlayer ? white : -white;
 }
 
+/** Cap depth on web so analysis stays usable */
+function webDepth(depth: number): number {
+  return Math.min(Math.max(depth, 8), 12);
+}
+
 export async function evaluateFen(
   fen: string,
   depth: number,
@@ -165,7 +184,7 @@ export async function evaluateFen(
   await ensureReady();
   lines.length = 0;
   await send(`position fen ${fen}`);
-  await send(`go depth ${depth}`);
+  await send(`go depth ${webDepth(depth)}`);
   return readGoResult();
 }
 
@@ -177,7 +196,7 @@ export async function evaluateWithMoves(
   await ensureReady();
   lines.length = 0;
   await send(`position fen ${fen} moves ${moves.join(" ")}`);
-  await send(`go depth ${depth}`);
+  await send(`go depth ${webDepth(depth)}`);
   return readGoResult();
 }
 
@@ -187,23 +206,27 @@ export async function checkStockfish(): Promise<{
   error: string | null;
 }> {
   try {
+    // Only verify the JS file exists — do NOT download the 7MB WASM here
+    // (that hung Settings and made it look like "Not found").
     const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
-    const wasmUrl = new URL(
-      "stockfish-18-lite-single.wasm",
-      workerBaseUrl(),
-    ).href;
-    // GET (not HEAD) — some hosts mishandle HEAD
-    const [jsRes, wasmRes] = await Promise.all([
-      fetch(jsUrl, { method: "GET", cache: "force-cache" }),
-      fetch(wasmUrl, { method: "GET", cache: "force-cache" }),
-    ]);
-    if (!jsRes.ok || !wasmRes.ok) {
-      return {
-        available: false,
-        path: null,
-        error: `Stockfish assets missing (${jsRes.status}/${wasmRes.status}).`,
-      };
+    const jsRes = await fetch(jsUrl, { method: "HEAD", cache: "no-cache" });
+    if (!jsRes.ok) {
+      // Some hosts reject HEAD — fall back to a tiny range GET
+      const getRes = await fetch(jsUrl, {
+        method: "GET",
+        headers: { Range: "bytes=0-0" },
+        cache: "no-cache",
+      });
+      if (!getRes.ok && getRes.status !== 206) {
+        return {
+          available: false,
+          path: null,
+          error: `Stockfish script missing (${getRes.status || jsRes.status}).`,
+        };
+      }
     }
+
+    resetWorkerState();
     await ensureReady();
     return {
       available: true,
@@ -211,6 +234,7 @@ export async function checkStockfish(): Promise<{
       error: null,
     };
   } catch (e) {
+    resetWorkerState();
     return { available: false, path: null, error: String(e) };
   }
 }

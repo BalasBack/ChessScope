@@ -8,12 +8,7 @@ import {
   formatCoachProfile,
   warmupModel,
 } from "../lib/ollama-client";
-import {
-  checkWebCoach,
-  setWebCoachProgress,
-  warmupWebCoach,
-  webCoachStream,
-} from "../lib/web-llm-client";
+import { checkWebCoach, webCoachStream } from "../lib/web-llm-client";
 import { Button, Card, Input } from "../components/ui";
 
 const SUGGESTIONS = [
@@ -42,28 +37,12 @@ export function Coach() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warming, setWarming] = useState(false);
-  const [warmMsg, setWarmMsg] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (web) {
       checkWebCoach().then(setStatus);
-      setWarming(true);
-      setWebCoachProgress((msg) => setWarmMsg(msg));
-      warmupWebCoach((msg) => setWarmMsg(msg))
-        .catch((e) => {
-          setStatus({
-            connected: false,
-            models: [],
-            error: String(e),
-          });
-        })
-        .finally(() => {
-          setWarming(false);
-          setWarmMsg(null);
-          setWebCoachProgress(null);
-        });
       return;
     }
 
@@ -80,7 +59,7 @@ export function Coach() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamText, loading, warmMsg]);
+  }, [messages, streamText, loading, warming]);
 
   const send = async (text: string) => {
     if (!text.trim() || loading || warming) return;
@@ -131,28 +110,25 @@ export function Coach() {
         <h1 className="text-xl font-bold">AI Coach</h1>
         <p className="text-sm text-[var(--color-muted)]">
           {web
-            ? "Runs in your browser — no signup or API key needed"
+            ? "Free cloud coach — no signup or API key needed"
             : "Local coaching via Ollama — powered by your game stats"}
         </p>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col">
-          {!status?.connected && (
+          {status && !status.connected && (
             <div className="border-b border-amber-500/30 bg-amber-500/10 px-8 py-3 text-sm text-amber-200">
               {status?.error ??
                 (web
-                  ? "Browser coach failed to load. Try refreshing, or use the desktop app with Ollama."
+                  ? "AI coach is temporarily unavailable. Try again in a moment, or use the desktop app with Ollama."
                   : "Ollama not connected. Install from ollama.com and run: ollama pull llama3.1")}
             </div>
           )}
 
-          {(warming || warmMsg) && (
+          {warming && (
             <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-8 py-2 text-xs text-[var(--color-muted)]">
-              {warmMsg ??
-                (web
-                  ? "Preparing browser coach (one-time download, then it’s instant)…"
-                  : "Loading model into memory…")}
+              Loading model into memory…
             </div>
           )}
 
@@ -170,7 +146,7 @@ export function Coach() {
                   <p>Ask your AI coach anything about tournament preparation.</p>
                   {web && (
                     <p className="mt-2 text-xs">
-                      First visit downloads a small model into this browser (no account needed).
+                      Replies usually arrive in a few seconds — no account needed.
                     </p>
                   )}
                 </div>
@@ -259,14 +235,14 @@ export function Coach() {
         </div>
 
         <aside className="w-64 shrink-0 space-y-4 border-l border-[var(--color-border)] p-4">
-          <Card title={web ? "Browser coach" : "Model"}>
+          <Card title={web ? "Cloud coach" : "Model"}>
             {web ? (
               <p className="text-xs text-[var(--color-muted)]">
-                {warming
-                  ? "Downloading model…"
-                  : status?.connected
-                    ? "Ready — no signup required"
-                    : "Unavailable"}
+                {status?.connected
+                  ? "Ready — no signup required"
+                  : status
+                    ? "Unavailable"
+                    : "Checking…"}
               </p>
             ) : status?.connected && status.models.length > 0 ? (
               <select
