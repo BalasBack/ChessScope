@@ -15,12 +15,14 @@ function workerBaseUrl(): URL {
 }
 
 /**
- * Stockfish lite-single expects Worker URL hash: #<encodedWasmUrl>,worker
+ * stockfish.js lite-single: load the .js file as a Worker (no hash).
+ * It derives the .wasm URL from its own script path.
+ * The "#…,worker" hash is only for pthread stubs and must NOT be used here —
+ * that hash makes the script skip all engine init (causing UCI timeouts).
  */
 function createStockfishWorker(): Worker {
   const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
-  const wasmUrl = new URL("stockfish-18-lite-single.wasm", workerBaseUrl()).href;
-  return new Worker(`${jsUrl}#${encodeURIComponent(wasmUrl)},worker`);
+  return new Worker(jsUrl);
 }
 
 function resetWorkerState() {
@@ -52,7 +54,9 @@ function getWorker(): Worker {
       (ev as ErrorEvent).message ||
       "Stockfish worker failed to load the WASM engine.";
   };
-  worker.onmessage = (e: MessageEvent<string>) => {
+  worker.onmessage = (e: MessageEvent<string | { percent?: number }>) => {
+    // Download-progress objects from MessageChannel — ignore
+    if (e.data && typeof e.data === "object") return;
     const line = typeof e.data === "string" ? e.data : String(e.data);
     if (waiters.length) {
       waiters.shift()!(line);
@@ -67,13 +71,18 @@ async function send(cmd: string): Promise<void> {
   getWorker().postMessage(cmd);
 }
 
-function readLine(timeoutMs = 60_000): Promise<string> {
+function readLine(timeoutMs = 90_000): Promise<string> {
   if (lines.length) return Promise.resolve(lines.shift()!);
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       const idx = waiters.indexOf(onLine);
       if (idx >= 0) waiters.splice(idx, 1);
-      reject(new Error("Stockfish timed out waiting for engine output"));
+      reject(
+        new Error(
+          initError ||
+            "Stockfish timed out waiting for engine output (WASM may still be downloading — try again)",
+        ),
+      );
     }, timeoutMs);
     const onLine = (line: string) => {
       clearTimeout(timer);
@@ -88,14 +97,13 @@ async function ensureReady(): Promise<void> {
   if (initError) throw new Error(initError);
 
   getWorker();
-  // Give WASM a moment to boot before UCI
-  await new Promise((r) => setTimeout(r, 250));
   if (initError) throw new Error(initError);
 
+  // Commands are queued inside stockfish.js until WASM finishes loading.
   await send("uci");
   for (;;) {
     if (initError) throw new Error(initError);
-    const line = await readLine(60_000);
+    const line = await readLine(90_000);
     if (line.includes("uciok")) break;
   }
   await send("isready");
@@ -206,24 +214,30 @@ export async function checkStockfish(): Promise<{
   error: string | null;
 }> {
   try {
-    // Only verify the JS file exists — do NOT download the 7MB WASM here
-    // (that hung Settings and made it look like "Not found").
     const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
-    const jsRes = await fetch(jsUrl, { method: "HEAD", cache: "no-cache" });
+    const wasmUrl = new URL(
+      "stockfish-18-lite-single.wasm",
+      workerBaseUrl(),
+    ).href;
+
+    const [jsRes, wasmRes] = await Promise.all([
+      fetch(jsUrl, { method: "HEAD", cache: "no-cache" }),
+      fetch(wasmUrl, { method: "HEAD", cache: "no-cache" }),
+    ]);
+
     if (!jsRes.ok) {
-      // Some hosts reject HEAD — fall back to a tiny range GET
-      const getRes = await fetch(jsUrl, {
-        method: "GET",
-        headers: { Range: "bytes=0-0" },
-        cache: "no-cache",
-      });
-      if (!getRes.ok && getRes.status !== 206) {
-        return {
-          available: false,
-          path: null,
-          error: `Stockfish script missing (${getRes.status || jsRes.status}).`,
-        };
-      }
+      return {
+        available: false,
+        path: null,
+        error: `Stockfish script missing (${jsRes.status}).`,
+      };
+    }
+    if (!wasmRes.ok) {
+      return {
+        available: false,
+        path: null,
+        error: `Stockfish WASM missing (${wasmRes.status}).`,
+      };
     }
 
     resetWorkerState();
