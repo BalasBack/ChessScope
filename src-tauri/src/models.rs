@@ -10,6 +10,8 @@ pub struct AccountSettings {
     pub default_game_count: Option<u32>,
     pub theme: Option<String>,
     pub compact_ui: Option<bool>,
+    #[serde(default)]
+    pub gemini_api_key: Option<String>,
 }
 
 impl Default for AccountSettings {
@@ -23,6 +25,7 @@ impl Default for AccountSettings {
             default_game_count: Some(100),
             theme: Some("slate".to_string()),
             compact_ui: Some(false),
+            gemini_api_key: None,
         }
     }
 }

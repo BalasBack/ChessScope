@@ -40,6 +40,7 @@ impl Database {
                 "default_game_count" => settings.default_game_count = value.parse().ok(),
                 "theme" => settings.theme = Some(value),
                 "compact_ui" => settings.compact_ui = value.parse().ok(),
+                "gemini_api_key" => settings.gemini_api_key = Some(value),
                 _ => {}
             }
         }
@@ -63,6 +64,7 @@ impl Database {
                 "compact_ui",
                 settings.compact_ui.map(|v| v.to_string()),
             ),
+            ("gemini_api_key", settings.gemini_api_key.clone()),
         ];
         for (key, value) in pairs {
             if let Some(v) = value {

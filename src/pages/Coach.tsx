@@ -8,6 +8,12 @@ import {
   formatCoachProfile,
   warmupModel,
 } from "../lib/ollama-client";
+import {
+  checkWebCoach,
+  setWebCoachProgress,
+  warmupWebCoach,
+  webCoachStream,
+} from "../lib/web-llm-client";
 import { Button, Card, Input } from "../components/ui";
 
 const SUGGESTIONS = [
@@ -29,17 +35,38 @@ function pickModel(status: OllamaStatus, preferred: string | null): string {
 }
 
 export function Coach() {
+  const web = isWebApp();
   const [status, setStatus] = useState<OllamaStatus | null>(null);
   const [model, setModel] = useState("llama3.1");
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warming, setWarming] = useState(false);
+  const [warmMsg, setWarmMsg] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isWebApp()) return;
+    if (web) {
+      checkWebCoach().then(setStatus);
+      setWarming(true);
+      setWebCoachProgress((msg) => setWarmMsg(msg));
+      warmupWebCoach((msg) => setWarmMsg(msg))
+        .catch((e) => {
+          setStatus({
+            connected: false,
+            models: [],
+            error: String(e),
+          });
+        })
+        .finally(() => {
+          setWarming(false);
+          setWarmMsg(null);
+          setWebCoachProgress(null);
+        });
+      return;
+    }
+
     Promise.all([checkOllama(), api.getSettings()]).then(([ollama, settings]) => {
       setStatus(ollama);
       const picked = pickModel(ollama, settings.ollama_model);
@@ -49,14 +76,16 @@ export function Coach() {
         warmupModel(picked).finally(() => setWarming(false));
       }
     });
-  }, []);
+  }, [web]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamText, loading]);
+  }, [messages, streamText, loading, warmMsg]);
 
   const send = async (text: string) => {
-    if (!text.trim() || loading || isWebApp()) return;
+    if (!text.trim() || loading || warming) return;
+    if (!status?.connected) return;
+
     const userMsg: CoachMessage = { role: "user", content: text.trim() };
     const next = [...messages, userMsg];
     setMessages(next);
@@ -68,7 +97,10 @@ export function Coach() {
     try {
       const stats = await api.getPlayerStats();
       const profile = formatCoachProfile(stats);
-      for await (const chunk of coachChatStream(model, next, profile)) {
+      const stream = web
+        ? webCoachStream(next, profile)
+        : coachChatStream(model, next, profile);
+      for await (const chunk of stream) {
         reply += chunk;
         setStreamText(reply);
       }
@@ -82,7 +114,7 @@ export function Coach() {
           role: "assistant",
           content: partial
             ? `${partial}\n\n—(stopped: ${e})`
-            : `Error: ${e}. If llama3.1 is slow on your PC, try a smaller model: ollama pull phi3:mini`,
+            : `Error: ${e}`,
         },
       ]);
       setStreamText("");
@@ -91,24 +123,16 @@ export function Coach() {
     }
   };
 
-  if (isWebApp()) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <Bot className="mb-4 h-12 w-12 text-[var(--color-muted)] opacity-40" />
-        <h1 className="text-xl font-bold">AI Coach</h1>
-        <p className="mt-2 max-w-md text-sm text-[var(--color-muted)]">
-          AI Coach requires the desktop app with Ollama installed locally.
-        </p>
-      </div>
-    );
-  }
+  const canSend = !!status?.connected && !warming;
 
   return (
     <div className="flex h-full flex-col">
       <header className="border-b border-[var(--color-border)] px-8 py-5">
         <h1 className="text-xl font-bold">AI Coach</h1>
         <p className="text-sm text-[var(--color-muted)]">
-          Local coaching via Ollama — powered by your game stats
+          {web
+            ? "Runs in your browser — no signup or API key needed"
+            : "Local coaching via Ollama — powered by your game stats"}
         </p>
       </header>
 
@@ -117,19 +141,24 @@ export function Coach() {
           {!status?.connected && (
             <div className="border-b border-amber-500/30 bg-amber-500/10 px-8 py-3 text-sm text-amber-200">
               {status?.error ??
-                "Ollama not connected. Install from ollama.com and run: ollama pull llama3.1"}
+                (web
+                  ? "Browser coach failed to load. Try refreshing, or use the desktop app with Ollama."
+                  : "Ollama not connected. Install from ollama.com and run: ollama pull llama3.1")}
             </div>
           )}
 
-          {warming && (
+          {(warming || warmMsg) && (
             <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-8 py-2 text-xs text-[var(--color-muted)]">
-              Loading model into memory — first reply is faster after this finishes…
+              {warmMsg ??
+                (web
+                  ? "Preparing browser coach (one-time download, then it’s instant)…"
+                  : "Loading model into memory…")}
             </div>
           )}
 
           {loading && !streamText && (
             <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-8 py-2 text-xs text-[var(--color-muted)]">
-              Generating… llama3.1 on CPU can take several minutes. Text will appear as it streams.
+              Generating…
             </div>
           )}
 
@@ -139,13 +168,18 @@ export function Coach() {
                 <div className="text-center text-[var(--color-muted)]">
                   <Bot className="mx-auto mb-3 h-12 w-12 opacity-40" />
                   <p>Ask your AI coach anything about tournament preparation.</p>
+                  {web && (
+                    <p className="mt-2 text-xs">
+                      First visit downloads a small model into this browser (no account needed).
+                    </p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   {SUGGESTIONS.map((s) => (
                     <button
                       key={s}
                       onClick={() => send(s)}
-                      disabled={loading || warming || !status?.connected}
+                      disabled={loading || !canSend}
                       className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 text-left text-sm hover:border-[var(--color-accent)] disabled:opacity-50"
                     >
                       {s}
@@ -190,7 +224,7 @@ export function Coach() {
                   <div className="flex gap-3">
                     <Bot className="h-5 w-5 text-[var(--color-accent)]" />
                     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 text-sm text-[var(--color-muted)]">
-                      Waiting for first token…
+                      Thinking…
                     </div>
                   </div>
                 )}
@@ -211,12 +245,12 @@ export function Coach() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask your coach..."
-                disabled={loading || warming || !status?.connected}
+                disabled={loading || !canSend}
               />
               <Button
                 type="submit"
                 loading={loading}
-                disabled={!input.trim() || loading || warming || !status?.connected}
+                disabled={!input.trim() || loading || !canSend}
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -224,9 +258,17 @@ export function Coach() {
           </div>
         </div>
 
-        <aside className="w-64 shrink-0 border-l border-[var(--color-border)] p-4 space-y-4">
-          <Card title="Model">
-            {status?.connected && status.models.length > 0 ? (
+        <aside className="w-64 shrink-0 space-y-4 border-l border-[var(--color-border)] p-4">
+          <Card title={web ? "Browser coach" : "Model"}>
+            {web ? (
+              <p className="text-xs text-[var(--color-muted)]">
+                {warming
+                  ? "Downloading model…"
+                  : status?.connected
+                    ? "Ready — no signup required"
+                    : "Unavailable"}
+              </p>
+            ) : status?.connected && status.models.length > 0 ? (
               <select
                 value={model}
                 onChange={(e) => {
@@ -248,11 +290,6 @@ export function Coach() {
               </p>
             )}
           </Card>
-          <p className="text-xs text-[var(--color-muted)]">
-            Tip: <code className="text-[var(--color-text)]">llama3.1</code> is slow on CPU.
-            For faster replies run{" "}
-            <code className="text-[var(--color-text)]">ollama pull phi3:mini</code>
-          </p>
         </aside>
       </div>
     </div>

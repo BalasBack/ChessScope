@@ -1,4 +1,5 @@
-import type { ChessScopeApi, OpponentCandidate, OpponentDossier } from "../types";
+import { formatCoachProfile } from "../ollama-client";
+import { checkWebCoach, webCoachChat } from "../web-llm-client";
 import { analyzeGame } from "./analyze";
 import * as db from "./db";
 import { importChesscom, importLichess, importOpponentChesscom, importOpponentLichess } from "./import";
@@ -9,6 +10,7 @@ import {
   getBlunderPuzzles,
   getPlayerStats,
 } from "./stats";
+import type { ChessScopeApi, OpponentCandidate, OpponentDossier } from "../types";
 
 async function searchLichess(query: string): Promise<OpponentCandidate[]> {
   const res = await fetch(
@@ -139,16 +141,11 @@ export const webApi: ChessScopeApi = {
     };
   },
 
-  checkOllama: async () => ({
-    connected: false,
-    models: [],
-    error: "AI Coach requires the desktop app or a local Ollama instance.",
-  }),
+  checkOllama: async () => checkWebCoach(),
 
-  coachChat: async () => {
-    throw new Error(
-      "AI Coach is not available in the browser version. Use the desktop app with Ollama.",
-    );
+  coachChat: async (_model, messages) => {
+    const stats = await getPlayerStats();
+    return webCoachChat(messages, formatCoachProfile(stats));
   },
 
   checkStockfish,

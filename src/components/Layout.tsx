@@ -66,16 +66,17 @@ export function Layout() {
       <main className="flex flex-1 flex-col overflow-hidden">
         {isWebApp() && (
           <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/8 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
-            Web mode — your games stay in this browser. AI Coach needs the{" "}
+            Web mode — games stay in this browser. AI Coach works here with no signup
+            (downloads a small model once).{" "}
             <a
               href="https://github.com/BalasBack/ChessScope/releases"
               className="text-[var(--color-accent)] underline"
               target="_blank"
               rel="noreferrer"
             >
-              desktop app
-            </a>
-            .
+              Desktop app
+            </a>{" "}
+            uses Ollama for stronger local coaching.
           </div>
         )}
         <Outlet />

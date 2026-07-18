@@ -17,6 +17,7 @@ export function SettingsPage() {
     default_game_count: 100,
     theme: "slate",
     compact_ui: false,
+    gemini_api_key: null,
   });
   const [ollama, setOllama] = useState<OllamaStatus | null>(null);
   const [stockfish, setStockfish] = useState<StockfishStatus | null>(null);
@@ -253,7 +254,7 @@ export function SettingsPage() {
         </Card>
 
         <Card
-          title="AI coach (Ollama)"
+          title={isWebApp() ? "AI coach (browser)" : "AI coach (Ollama)"}
           action={
             !isWebApp() ? (
               <Button variant="ghost" onClick={refreshStatus} className="text-xs px-2 py-1">
@@ -264,9 +265,10 @@ export function SettingsPage() {
         >
           <div className="space-y-3">
             {isWebApp() ? (
-              <p className="text-sm text-amber-400">
-                AI Coach cannot run on the public website. Browsers block GitHub Pages from
-                talking to Ollama on your PC. Use the desktop app for coaching.
+              <p className="text-sm text-[var(--color-muted)]">
+                Website AI Coach runs entirely in the visitor&apos;s browser — no API key or
+                signup. The first visit downloads a small model once (then it&apos;s cached).
+                Open the <strong>AI Coach</strong> page to start.
               </p>
             ) : (
               <>

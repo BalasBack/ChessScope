@@ -9,6 +9,8 @@ export interface AccountSettings {
   default_game_count: number | null;
   theme: ThemeId | null;
   compact_ui: boolean | null;
+  /** Free Google Gemini API key — used for AI Coach on the website */
+  gemini_api_key: string | null;
 }
 
 export interface GameRecord {

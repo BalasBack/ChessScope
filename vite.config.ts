@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       ? { outDir: "docs", emptyOutDir: true }
       : undefined,
     clearScreen: false,
+    optimizeDeps: {
+      exclude: ["@huggingface/transformers"],
+    },
     server: {
       port: 1420,
       strictPort: true,
