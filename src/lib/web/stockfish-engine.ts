@@ -1,7 +1,3 @@
-const SF_VERSION = "18.0.8";
-const SF_JS = `https://cdn.jsdelivr.net/npm/stockfish@${SF_VERSION}/bin/stockfish-18-lite-single.js`;
-const SF_WASM = `https://cdn.jsdelivr.net/npm/stockfish@${SF_VERSION}/bin/stockfish-18-lite-single.wasm`;
-
 export type EngineEval = {
   evalCp: number;
   mateIn: number | null;
@@ -12,11 +8,49 @@ let worker: Worker | null = null;
 let ready = false;
 let lines: string[] = [];
 let waiters: Array<(line: string) => void> = [];
+let initError: string | null = null;
+
+function workerBaseUrl(): URL {
+  return new URL(`${import.meta.env.BASE_URL}stockfish/`, window.location.href);
+}
+
+function createStockfishWorker(): Worker {
+  const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
+  const wasmUrl = new URL("stockfish-18-lite-single.wasm", workerBaseUrl()).href;
+  const hash = `#${encodeURIComponent(wasmUrl)},worker`;
+
+  // Prefer blob worker so the script runs same-origin (GitHub Pages safe).
+  try {
+    const blob = new Blob(
+      [`importScripts(${JSON.stringify(jsUrl + hash)});`],
+      { type: "application/javascript" },
+    );
+    return new Worker(URL.createObjectURL(blob));
+  } catch {
+    // Fallback: direct worker URL (same-origin only)
+    return new Worker(jsUrl + hash);
+  }
+}
 
 function getWorker(): Worker {
   if (worker) return worker;
-  const url = `${SF_JS}#${encodeURIComponent(SF_WASM)},worker`;
-  worker = new Worker(url);
+  if (initError) throw new Error(initError);
+
+  try {
+    worker = createStockfishWorker();
+  } catch (e) {
+    initError = `Failed to start Stockfish worker: ${e}`;
+    throw new Error(initError);
+  }
+
+  worker.onerror = (ev) => {
+    initError =
+      ev.message ||
+      "Stockfish failed to load. Hard-refresh the page (Ctrl+Shift+R) or use the desktop app.";
+  };
+  worker.onmessageerror = () => {
+    initError = "Stockfish worker message error.";
+  };
   worker.onmessage = (e: MessageEvent<string>) => {
     const line = typeof e.data === "string" ? e.data : String(e.data);
     if (waiters.length) {
@@ -32,21 +66,34 @@ async function send(cmd: string): Promise<void> {
   getWorker().postMessage(cmd);
 }
 
-async function readLine(): Promise<string> {
-  if (lines.length) return lines.shift()!;
-  return new Promise((resolve) => waiters.push(resolve));
+function readLine(timeoutMs = 60_000): Promise<string> {
+  if (lines.length) return Promise.resolve(lines.shift()!);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const idx = waiters.indexOf(onLine);
+      if (idx >= 0) waiters.splice(idx, 1);
+      reject(new Error("Stockfish timed out waiting for engine output"));
+    }, timeoutMs);
+    const onLine = (line: string) => {
+      clearTimeout(timer);
+      resolve(line);
+    };
+    waiters.push(onLine);
+  });
 }
 
 async function ensureReady(): Promise<void> {
   if (ready) return;
+  if (initError) throw new Error(initError);
+
   await send("uci");
   for (;;) {
-    const line = await readLine();
+    const line = await readLine(30_000);
     if (line.includes("uciok")) break;
   }
   await send("isready");
   for (;;) {
-    const line = await readLine();
+    const line = await readLine(30_000);
     if (line.includes("readyok")) break;
   }
   ready = true;
@@ -146,8 +193,30 @@ export async function checkStockfish(): Promise<{
   error: string | null;
 }> {
   try {
+    // Verify assets exist before spinning up the worker
+    const jsUrl = new URL("stockfish-18-lite-single.js", workerBaseUrl()).href;
+    const wasmUrl = new URL(
+      "stockfish-18-lite-single.wasm",
+      workerBaseUrl(),
+    ).href;
+    const [jsRes, wasmRes] = await Promise.all([
+      fetch(jsUrl, { method: "HEAD" }),
+      fetch(wasmUrl, { method: "HEAD" }),
+    ]);
+    if (!jsRes.ok || !wasmRes.ok) {
+      return {
+        available: false,
+        path: null,
+        error:
+          "Stockfish files missing from the site. Redeploy with npm run build:web.",
+      };
+    }
     await ensureReady();
-    return { available: true, path: "Stockfish WASM (browser)", error: null };
+    return {
+      available: true,
+      path: "Stockfish WASM (browser)",
+      error: null,
+    };
   } catch (e) {
     return { available: false, path: null, error: String(e) };
   }

@@ -11,7 +11,7 @@ export function Card({ children, className, title, action }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-5",
+        "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-5 shadow-sm transition-colors",
         className,
       )}
     >
@@ -76,9 +76,11 @@ export function StatBox({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg bg-[var(--color-surface-3)] p-4">
-      <div className="text-xs text-[var(--color-muted)]">{label}</div>
-      <div className="mt-1 text-2xl font-bold">{value}</div>
+    <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface-3)] to-[var(--color-surface-2)] p-4">
+      <div className="text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
+        {label}
+      </div>
+      <div className="mt-1 text-2xl font-bold tracking-tight">{value}</div>
       {sub && (
         <div className="mt-0.5 text-xs text-[var(--color-muted)]">{sub}</div>
       )}

@@ -1,3 +1,5 @@
+export type ThemeId = "slate" | "midnight" | "forest" | "royal" | "light";
+
 export interface AccountSettings {
   chesscom_username: string | null;
   lichess_username: string | null;
@@ -5,6 +7,8 @@ export interface AccountSettings {
   ollama_model: string | null;
   analysis_depth: number | null;
   default_game_count: number | null;
+  theme: ThemeId | null;
+  compact_ui: boolean | null;
 }
 
 export interface GameRecord {
@@ -73,6 +77,11 @@ export interface UscfMember {
   state: string | null;
   fide_id: string | null;
   status: string | null;
+  ratings: UscfRating[];
+}
+
+export interface UscfRatingSnapshot {
+  date: string;
   ratings: UscfRating[];
 }
 
@@ -213,14 +222,20 @@ export interface OpponentDossier {
   ai_insight: string | null;
 }
 
+export interface RepairScoutResult {
+  fixed: number;
+  message: string;
+}
+
 export type ChessScopeApi = {
   getSettings: () => Promise<AccountSettings>;
   saveSettings: (settings: AccountSettings) => Promise<void>;
-  importChesscom: (username: string, maxGames?: number) => Promise<ImportResult>;
-  importLichess: (username: string, maxGames?: number) => Promise<ImportResult>;
+  importChesscom: (username: string, maxGames?: number, asOpponent?: boolean) => Promise<ImportResult>;
+  importLichess: (username: string, maxGames?: number, asOpponent?: boolean) => Promise<ImportResult>;
   syncAll: () => Promise<ImportResult[]>;
-  listGames: (limit?: number, offset?: number) => Promise<GameRecord[]>;
+  listGames: (limit?: number, offset?: number, ownOnly?: boolean) => Promise<GameRecord[]>;
   getGameCount: () => Promise<number>;
+  getScoutedGameCount: () => Promise<number>;
   getPlayerStats: () => Promise<PlayerStatsSummary>;
   lookupUscf: (uscfId: string) => Promise<UscfMember>;
   checkOllama: () => Promise<OllamaStatus>;
@@ -235,4 +250,5 @@ export type ChessScopeApi = {
   backfillOpenings: () => Promise<number>;
   searchOpponents: (query: string, sources?: string[]) => Promise<OpponentCandidate[]>;
   buildOpponentDossier: (candidate: OpponentCandidate) => Promise<OpponentDossier>;
+  repairScoutGames: () => Promise<RepairScoutResult>;
 };

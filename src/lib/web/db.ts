@@ -1,8 +1,5 @@
-import type {
-  AccountSettings,
-  GameAnalysis,
-  GameRecord,
-} from "../types";
+import type { AccountSettings, GameAnalysis, GameRecord } from "../types";
+import { shouldRelabelAsScout } from "../repair-scout-games";
 
 const DB_NAME = "chessscope-web";
 const DB_VERSION = 1;
@@ -74,6 +71,8 @@ export async function getSettings(): Promise<AccountSettings> {
       ollama_model: "llama3.1",
       analysis_depth: 14,
       default_game_count: 100,
+      theme: "slate",
+      compact_ui: false,
     };
   }
   return JSON.parse(row.value);
@@ -88,19 +87,28 @@ export async function saveSettings(settings: AccountSettings): Promise<void> {
 export async function listGames(
   limit = 100,
   offset = 0,
+  ownOnly?: boolean,
 ): Promise<GameRecord[]> {
   const all = await tx<StoredGame[]>("games", "readonly", (s) => s.getAll());
-  all.sort((a, b) => {
+  let filtered = all;
+  if (ownOnly === true) filtered = all.filter((g) => g.is_own_game);
+  else if (ownOnly === false) filtered = all.filter((g) => !g.is_own_game);
+  filtered.sort((a, b) => {
     const da = a.played_at ?? "";
     const db = b.played_at ?? "";
     return db.localeCompare(da);
   });
-  return all.slice(offset, offset + limit).map(toGameRecord);
+  return filtered.slice(offset, offset + limit).map(toGameRecord);
 }
 
 export async function getGameCount(): Promise<number> {
   const all = await tx<StoredGame[]>("games", "readonly", (s) => s.getAll());
   return all.filter((g) => g.is_own_game).length;
+}
+
+export async function getScoutedGameCount(): Promise<number> {
+  const all = await tx<StoredGame[]>("games", "readonly", (s) => s.getAll());
+  return all.filter((g) => !g.is_own_game).length;
 }
 
 export async function getGame(id: number): Promise<StoredGame | null> {
@@ -144,8 +152,9 @@ export async function upsertGame(
     (g) => g.source === game.source && g.external_id === game.external_id,
   );
   if (existing) {
+    const isOwn = existing.is_own_game || game.is_own_game;
     await tx("games", "readwrite", (s) =>
-      s.put({ ...existing, ...game, id: existing.id }),
+      s.put({ ...existing, ...game, id: existing.id, is_own_game: isOwn }),
     );
     return false;
   }
@@ -204,6 +213,43 @@ export async function isPuzzleSolved(puzzleId: string): Promise<boolean> {
     (s) => s.get(puzzleId),
   );
   return row?.solved ?? false;
+}
+
+export async function repairScoutGames(): Promise<{ fixed: number; message: string }> {
+  const settings = await getSettings();
+  if (!settings.chesscom_username && !settings.lichess_username) {
+    return {
+      fixed: 0,
+      message: "Link your Chess.com or Lichess username first so we can tell your games apart.",
+    };
+  }
+  const all = await allStoredGames();
+  let fixed = 0;
+  for (const g of all) {
+    if (
+      shouldRelabelAsScout(
+        {
+          source: g.source,
+          white_player: g.white_player,
+          black_player: g.black_player,
+          is_own_game: g.is_own_game,
+        },
+        settings,
+      )
+    ) {
+      await tx("games", "readwrite", (s) =>
+        s.put({ ...g, is_own_game: false }),
+      );
+      fixed++;
+    }
+  }
+  return {
+    fixed,
+    message:
+      fixed > 0
+        ? `Relabeled ${fixed} game(s) as scouted opponent games. Your dashboard stats are updated.`
+        : "No mislabeled scout games found — everything looks correct.",
+  };
 }
 
 export type { StoredGame };

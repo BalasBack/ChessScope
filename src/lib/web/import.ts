@@ -2,6 +2,14 @@ import { openingLabel } from "../chess";
 import type { ImportResult } from "../types";
 import * as db from "./db";
 
+export type ImportOptions = {
+  /** false = opponent/scout games (excluded from your dashboard stats) */
+  isOwnGame: boolean;
+};
+
+const OWN: ImportOptions = { isOwnGame: true };
+const OPPONENT: ImportOptions = { isOwnGame: false };
+
 function extractHeaders(pgn: string): { eco?: string; opening?: string } {
   const result: { eco?: string; opening?: string } = {};
   for (const line of pgn.split("\n")) {
@@ -37,6 +45,7 @@ function normalizeChesscomResult(
 export async function importLichess(
   username: string,
   maxGames: number,
+  options: ImportOptions = OWN,
 ): Promise<ImportResult> {
   const url = `https://lichess.org/api/games/user/${encodeURIComponent(username)}?max=${maxGames}&opening=true&clocks=false&perfType=rapid,blitz,classical&rated=true`;
   const res = await fetch(url, {
@@ -101,7 +110,7 @@ export async function importLichess(
       opening_name: openingName === "Unknown" ? null : openingName,
       time_class: game.speed ?? null,
       played_at: playedAt,
-      is_own_game: true,
+      is_own_game: options.isOwnGame,
       own_color: isWhite ? "white" : "black",
       analyzed_at: null,
       avg_cp_loss: null,
@@ -114,13 +123,14 @@ export async function importLichess(
     imported,
     skipped,
     source: "lichess",
-    message: `Imported ${imported} games from Lichess (${username})`,
+    message: `Imported ${imported} ${options.isOwnGame ? "of your" : "opponent"} games from Lichess (${username})`,
   };
 }
 
 export async function importChesscom(
   username: string,
   maxGames: number,
+  options: ImportOptions = OWN,
 ): Promise<ImportResult> {
   const archivesRes = await fetch(
     `https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/archives`,
@@ -178,7 +188,7 @@ export async function importChesscom(
         opening_name: openingName === "Unknown" ? null : openingName,
         time_class: game.time_class ?? null,
         played_at: playedAt,
-        is_own_game: true,
+        is_own_game: options.isOwnGame,
         own_color: ownColor,
         analyzed_at: null,
         avg_cp_loss: null,
@@ -192,6 +202,14 @@ export async function importChesscom(
     imported,
     skipped,
     source: "chesscom",
-    message: `Imported ${imported} games from Chess.com (${username})`,
+    message: `Imported ${imported} ${options.isOwnGame ? "of your" : "opponent"} games from Chess.com (${username})`,
   };
+}
+
+export function importOpponentLichess(username: string, maxGames: number) {
+  return importLichess(username, maxGames, OPPONENT);
+}
+
+export function importOpponentChesscom(username: string, maxGames: number) {
+  return importChesscom(username, maxGames, OPPONENT);
 }

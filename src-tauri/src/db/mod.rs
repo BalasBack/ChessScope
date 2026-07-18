@@ -38,6 +38,8 @@ impl Database {
                 "ollama_model" => settings.ollama_model = Some(value),
                 "analysis_depth" => settings.analysis_depth = value.parse().ok(),
                 "default_game_count" => settings.default_game_count = value.parse().ok(),
+                "theme" => settings.theme = Some(value),
+                "compact_ui" => settings.compact_ui = value.parse().ok(),
                 _ => {}
             }
         }
@@ -55,6 +57,11 @@ impl Database {
             (
                 "default_game_count",
                 settings.default_game_count.map(|v| v.to_string()),
+            ),
+            ("theme", settings.theme.clone()),
+            (
+                "compact_ui",
+                settings.compact_ui.map(|v| v.to_string()),
             ),
         ];
         for (key, value) in pairs {
@@ -102,7 +109,8 @@ impl Database {
                 opening_name = COALESCE(excluded.opening_name, games.opening_name),
                 time_class = COALESCE(excluded.time_class, games.time_class),
                 played_at = COALESCE(excluded.played_at, games.played_at),
-                own_color = COALESCE(excluded.own_color, games.own_color)",
+                own_color = COALESCE(excluded.own_color, games.own_color),
+                is_own_game = MAX(games.is_own_game, excluded.is_own_game)",
             params![
                 source,
                 external_id,
@@ -123,15 +131,21 @@ impl Database {
         Ok(true)
     }
 
-    pub fn list_games(&self, limit: u32, offset: u32) -> SqlResult<Vec<GameRecord>> {
+    pub fn list_games(&self, limit: u32, offset: u32, own_only: Option<bool>) -> SqlResult<Vec<GameRecord>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare(
+        let filter = match own_only {
+            Some(true) => " WHERE is_own_game = 1",
+            Some(false) => " WHERE is_own_game = 0",
+            None => "",
+        };
+        let sql = format!(
             "SELECT id, source, external_id, pgn, white_player, black_player,
                     white_elo, black_elo, result, eco, opening_name,
                     time_class, played_at, is_own_game, analyzed_at, avg_cp_loss
-             FROM games ORDER BY played_at DESC NULLS LAST, id DESC
-             LIMIT ?1 OFFSET ?2",
-        )?;
+             FROM games{filter} ORDER BY played_at DESC NULLS LAST, id DESC
+             LIMIT ?1 OFFSET ?2"
+        );
+        let mut stmt = conn.prepare(&sql)?;
         let rows = stmt.query_map(params![limit, offset], |row| {
             let analyzed_at: Option<String> = row.get(14)?;
             Ok(GameRecord {
@@ -158,8 +172,112 @@ impl Database {
 
     pub fn count_games(&self) -> SqlResult<u32> {
         let conn = self.conn.lock().unwrap();
-        let count: i64 = conn.query_row("SELECT COUNT(*) FROM games", [], |row| row.get(0))?;
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM games WHERE is_own_game = 1",
+            [],
+            |row| row.get(0),
+        )?;
         Ok(count as u32)
+    }
+
+    pub fn count_scouted_games(&self) -> SqlResult<u32> {
+        let conn = self.conn.lock().unwrap();
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM games WHERE is_own_game = 0",
+            [],
+            |row| row.get(0),
+        )?;
+        Ok(count as u32)
+    }
+
+    pub fn repair_scout_games(&self) -> SqlResult<crate::models::RepairScoutResult> {
+        let settings = self.get_settings()?;
+        if settings.chesscom_username.is_none() && settings.lichess_username.is_none() {
+            return Ok(crate::models::RepairScoutResult {
+                fixed: 0,
+                message: "Link your Chess.com or Lichess username first so we can tell your games apart.".to_string(),
+            });
+        }
+
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT id, source, white_player, black_player FROM games WHERE is_own_game = 1",
+        )?;
+        let rows: Vec<(i64, String, String, String)> = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut fixed = 0u32;
+        for (id, source, white, black) in rows {
+            if Self::should_relabel_as_scout(&source, &white, &black, &settings) {
+                conn.execute(
+                    "UPDATE games SET is_own_game = 0 WHERE id = ?1",
+                    params![id],
+                )?;
+                fixed += 1;
+            }
+        }
+
+        let message = if fixed > 0 {
+            format!(
+                "Relabeled {fixed} game(s) as scouted opponent games. Your dashboard stats are updated."
+            )
+        } else {
+            "No mislabeled scout games found — everything looks correct.".to_string()
+        };
+
+        Ok(crate::models::RepairScoutResult { fixed, message })
+    }
+
+    fn name_matches(player: &str, username: &str) -> bool {
+        player.trim().eq_ignore_ascii_case(username.trim())
+    }
+
+    fn player_is_user(white: &str, black: &str, username: &Option<String>) -> bool {
+        username
+            .as_ref()
+            .is_some_and(|u| Self::name_matches(white, u) || Self::name_matches(black, u))
+    }
+
+    fn should_relabel_as_scout(
+        source: &str,
+        white: &str,
+        black: &str,
+        settings: &AccountSettings,
+    ) -> bool {
+        let chesscom = &settings.chesscom_username;
+        let lichess = &settings.lichess_username;
+
+        if source == "chessgames" {
+            return true;
+        }
+
+        if source == "chesscom" {
+            if let Some(u) = chesscom {
+                return !Self::player_is_user(white, black, &Some(u.clone()));
+            }
+            if let Some(u) = lichess {
+                return !Self::player_is_user(white, black, &Some(u.clone()));
+            }
+        }
+
+        if source == "lichess" {
+            if let Some(u) = lichess {
+                return !Self::player_is_user(white, black, &Some(u.clone()));
+            }
+            if let Some(u) = chesscom {
+                return !Self::player_is_user(white, black, &Some(u.clone()));
+            }
+        }
+
+        false
     }
 
     pub fn player_stats(&self) -> SqlResult<PlayerStatsSummary> {

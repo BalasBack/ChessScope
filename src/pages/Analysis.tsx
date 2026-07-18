@@ -76,6 +76,7 @@ function MoveBadge({ ma }: { ma: MoveAnalysis }) {
 }
 
 export function Analysis() {
+  const [gameFilter, setGameFilter] = useState<"mine" | "scouted">("mine");
   const [games, setGames] = useState<GameRecord[]>([]);
   const [selected, setSelected] = useState<GameRecord | null>(null);
   const [analysis, setAnalysis] = useState<GameAnalysis | null>(null);
@@ -88,8 +89,8 @@ export function Analysis() {
   const [positionFens, setPositionFens] = useState<string[]>([START_FEN]);
 
   const loadGames = useCallback(() => {
-    api.listGames(100).then(setGames).catch(console.error);
-  }, []);
+    api.listGames(100, 0, gameFilter === "mine").then(setGames).catch(console.error);
+  }, [gameFilter]);
 
   useEffect(() => {
     loadGames();
@@ -169,7 +170,7 @@ export function Analysis() {
         <div>
           <h1 className="text-lg font-bold">Game Analysis</h1>
           <p className="text-xs text-[var(--color-muted)]">
-            Review your games with Stockfish
+            Review games — your stats use &quot;My games&quot; only
           </p>
         </div>
         {selected && (
@@ -194,9 +195,29 @@ export function Analysis() {
       <div className="flex min-h-0 flex-1">
         {/* Game list */}
         <aside className="w-72 shrink-0 overflow-auto border-r border-[var(--color-border)] bg-[var(--color-surface-2)]/50">
+          <div className="flex border-b border-[var(--color-border)] p-2 gap-1">
+            {(["mine", "scouted"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => {
+                  setGameFilter(f);
+                  setSelected(null);
+                }}
+                className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${
+                  gameFilter === f
+                    ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)]"
+                    : "text-[var(--color-muted)] hover:bg-[var(--color-surface-3)]"
+                }`}
+              >
+                {f === "mine" ? "My games" : "Scouted"}
+              </button>
+            ))}
+          </div>
           {games.length === 0 ? (
             <p className="p-4 text-sm text-[var(--color-muted)]">
-              No games yet. Sync from the Dashboard.
+              {gameFilter === "mine"
+                ? "No games yet. Link accounts in Settings and sync from Dashboard."
+                : "No scouted games. Import opponents via Opponent Scout."}
             </p>
           ) : (
             games.map((g) => {
@@ -229,6 +250,11 @@ export function Analysis() {
                       <span className={`text-xs font-medium ${resultColor(g.result)}`}>
                         {formatResult(g.result)}
                       </span>
+                      {!g.is_own_game && (
+                        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] text-amber-400">
+                          scout
+                        </span>
+                      )}
                       {g.analyzed && (
                         <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-400">
                           analyzed

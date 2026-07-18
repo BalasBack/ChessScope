@@ -5,6 +5,7 @@ import { Analysis } from "./pages/Analysis";
 import { Coach } from "./pages/Coach";
 import { Training } from "./pages/Training";
 import { OpponentScout } from "./pages/OpponentScout";
+import { UscfProfile } from "./pages/UscfProfile";
 import { SettingsPage } from "./pages/Settings";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/coach" element={<Coach />} />
           <Route path="/training" element={<Training />} />
           <Route path="/scout" element={<OpponentScout />} />
+          <Route path="/uscf" element={<UscfProfile />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

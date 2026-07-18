@@ -1,5 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { ChessScopeApi } from "./types";
+import {
+  checkOllama,
+  coachChat as ollamaCoachChat,
+  formatCoachProfile,
+} from "./ollama-client";
+import type { ChessScopeApi, PlayerStatsSummary } from "./types";
 
 export const tauriApi: ChessScopeApi = {
   getSettings: () => invoke("get_settings"),
@@ -9,13 +14,21 @@ export const tauriApi: ChessScopeApi = {
   importLichess: (username, maxGames) =>
     invoke("import_lichess_games", { username, maxGames: maxGames ?? null }),
   syncAll: () => invoke("sync_all_accounts"),
-  listGames: (limit, offset) =>
-    invoke("list_games", { limit: limit ?? null, offset: offset ?? null }),
+  listGames: (limit, offset, ownOnly) =>
+    invoke("list_games", {
+      limit: limit ?? null,
+      offset: offset ?? null,
+      ownOnly: ownOnly ?? null,
+    }),
   getGameCount: () => invoke("get_game_count"),
+  getScoutedGameCount: () => invoke("get_scouted_game_count"),
   getPlayerStats: () => invoke("get_player_stats"),
   lookupUscf: (uscfId) => invoke("lookup_uscf_member", { uscfId }),
-  checkOllama: () => invoke("check_ollama_status"),
-  coachChat: (model, messages) => invoke("coach_chat", { model, messages }),
+  checkOllama,
+  coachChat: async (model, messages) => {
+    const stats = await invoke<PlayerStatsSummary>("get_player_stats");
+    return ollamaCoachChat(model, messages, formatCoachProfile(stats));
+  },
   checkStockfish: () => invoke("check_stockfish_status"),
   getGameAnalysis: (gameId) => invoke("get_game_analysis", { gameId }),
   analyzeGame: (gameId) => invoke("analyze_game", { gameId }),
@@ -31,4 +44,5 @@ export const tauriApi: ChessScopeApi = {
     invoke("search_opponents", { query, sources: sources ?? null }),
   buildOpponentDossier: (candidate) =>
     invoke("build_opponent_dossier", { candidate }),
+  repairScoutGames: () => invoke("repair_scout_games"),
 };

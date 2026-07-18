@@ -1,7 +1,7 @@
 import type { ChessScopeApi, OpponentCandidate, OpponentDossier } from "../types";
 import { analyzeGame } from "./analyze";
 import * as db from "./db";
-import { importChesscom, importLichess } from "./import";
+import { importChesscom, importLichess, importOpponentChesscom, importOpponentLichess } from "./import";
 import { checkStockfish } from "./stockfish-engine";
 import {
   backfillOpenings,
@@ -73,14 +73,16 @@ export const webApi: ChessScopeApi = {
   getSettings: db.getSettings,
   saveSettings: db.saveSettings,
 
-  importChesscom: async (username, maxGames) => {
+  importChesscom: async (username, maxGames, asOpponent) => {
     const settings = await db.getSettings();
-    return importChesscom(username, maxGames ?? settings.default_game_count ?? 100);
+    const opts = asOpponent ? { isOwnGame: false } : { isOwnGame: true };
+    return importChesscom(username, maxGames ?? settings.default_game_count ?? 100, opts);
   },
 
-  importLichess: async (username, maxGames) => {
+  importLichess: async (username, maxGames, asOpponent) => {
     const settings = await db.getSettings();
-    return importLichess(username, maxGames ?? settings.default_game_count ?? 100);
+    const opts = asOpponent ? { isOwnGame: false } : { isOwnGame: true };
+    return importLichess(username, maxGames ?? settings.default_game_count ?? 100, opts);
   },
 
   syncAll: async () => {
@@ -102,8 +104,9 @@ export const webApi: ChessScopeApi = {
     return results;
   },
 
-  listGames: db.listGames,
+  listGames: (limit, offset, ownOnly) => db.listGames(limit, offset, ownOnly),
   getGameCount: db.getGameCount,
+  getScoutedGameCount: db.getScoutedGameCount,
   getPlayerStats,
   backfillOpenings,
 
@@ -195,10 +198,10 @@ export const webApi: ChessScopeApi = {
   buildOpponentDossier: async (candidate): Promise<OpponentDossier> => {
     let imported = 0;
     if (candidate.lichess_username) {
-      const r = await importLichess(candidate.lichess_username, 30);
+      const r = await importOpponentLichess(candidate.lichess_username, 30);
       imported += r.imported;
     } else if (candidate.chesscom_username) {
-      const r = await importChesscom(candidate.chesscom_username, 30);
+      const r = await importOpponentChesscom(candidate.chesscom_username, 30);
       imported += r.imported;
     }
     const emptyRecord = {
@@ -221,11 +224,13 @@ export const webApi: ChessScopeApi = {
       recent_games: [],
       ratings: [],
       style_summary: imported
-        ? `Imported ${imported} recent games — review them in Analysis.`
+        ? `Imported ${imported} opponent games — view under Analysis → Scouted games.`
         : "Link a Lichess or Chess.com username to import games.",
       tactical_notes: "Full dossier stats available in the desktop app.",
       recommended_prep: "Review imported games in Analysis and note recurring openings.",
       ai_insight: null,
     };
   },
+
+  repairScoutGames: () => db.repairScoutGames(),
 };

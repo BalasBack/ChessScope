@@ -189,10 +189,22 @@ pub fn resolve_stockfish_path() -> Result<String, String> {
             .join("stockfish.exe"),
     ];
 
+    if let Ok(cwd) = std::env::current_dir() {
+        candidates.push(cwd.join("src-tauri").join("binaries").join("stockfish.exe"));
+        candidates.push(cwd.join("binaries").join("stockfish.exe"));
+    }
+
     if let Ok(exe) = std::env::current_exe() {
-        if let Some(dir) = exe.parent() {
-            candidates.push(dir.join("stockfish.exe"));
-            candidates.push(dir.join("binaries").join("stockfish.exe"));
+        let mut dir = exe.parent().map(|p| p.to_path_buf());
+        while let Some(d) = dir {
+            candidates.push(d.join("stockfish.exe"));
+            candidates.push(d.join("binaries").join("stockfish.exe"));
+            candidates.push(
+                d.join("src-tauri")
+                    .join("binaries")
+                    .join("stockfish.exe"),
+            );
+            dir = d.parent().map(|p| p.to_path_buf());
         }
     }
 

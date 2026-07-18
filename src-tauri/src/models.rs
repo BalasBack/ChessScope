@@ -8,6 +8,8 @@ pub struct AccountSettings {
     pub ollama_model: Option<String>,
     pub analysis_depth: Option<u32>,
     pub default_game_count: Option<u32>,
+    pub theme: Option<String>,
+    pub compact_ui: Option<bool>,
 }
 
 impl Default for AccountSettings {
@@ -19,8 +21,16 @@ impl Default for AccountSettings {
             ollama_model: Some("llama3.1".to_string()),
             analysis_depth: Some(18),
             default_game_count: Some(100),
+            theme: Some("slate".to_string()),
+            compact_ui: Some(false),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepairScoutResult {
+    pub fixed: u32,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

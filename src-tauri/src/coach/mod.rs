@@ -2,7 +2,7 @@ use crate::models::{CoachMessage, OllamaStatus};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-const OLLAMA_URL: &str = "http://localhost:11434";
+const OLLAMA_URL: &str = "http://127.0.0.1:11434";
 
 #[derive(Debug, Deserialize)]
 struct TagsResponse {
@@ -32,11 +32,16 @@ struct ChatResponse {
     message: ChatMsg,
 }
 
-pub async fn check_status() -> OllamaStatus {
-    let client = match reqwest::Client::builder()
-        .timeout(Duration::from_secs(3))
+fn ollama_client(timeout: Duration) -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
+        .no_proxy()
+        .timeout(timeout)
         .build()
-    {
+        .map_err(|e| e.to_string())
+}
+
+pub async fn check_status() -> OllamaStatus {
+    let client = match ollama_client(Duration::from_secs(5)) {
         Ok(c) => c,
         Err(e) => {
             return OllamaStatus {
@@ -83,10 +88,7 @@ pub async fn chat(
     messages: &[CoachMessage],
     profile_summary: &str,
 ) -> Result<String, String> {
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(120))
-        .build()
-        .map_err(|e| e.to_string())?;
+    let client = ollama_client(Duration::from_secs(180))?;
 
     let system = format!(
         "You are ChessScope AI Coach, an expert chess coach helping a serious tournament player prepare for USCF and FIDE events. \
@@ -113,15 +115,48 @@ pub async fn chat(
         stream: false,
     };
 
-    let response = client
+    let response = send_chat(&client, &request).await?;
+
+    if response.status() == reqwest::StatusCode::NOT_FOUND && !model.contains(':') {
+        let retry = ChatRequest {
+            model: format!("{model}:latest"),
+            messages: request.messages,
+            stream: false,
+        };
+        return parse_chat_response(send_chat(&client, &retry).await?).await;
+    }
+
+    parse_chat_response(response).await
+}
+
+async fn send_chat(
+    client: &reqwest::Client,
+    request: &ChatRequest,
+) -> Result<reqwest::Response, String> {
+    client
         .post(format!("{OLLAMA_URL}/api/chat"))
-        .json(&request)
+        .json(request)
         .send()
         .await
-        .map_err(|e| format!("Ollama request failed: {e}. Is Ollama running?"))?;
+        .map_err(|e| format!("Ollama request failed: {e}. Is Ollama running?"))
+}
 
+async fn parse_chat_response(response: reqwest::Response) -> Result<String, String> {
     if !response.status().is_success() {
-        return Err(format!("Ollama error: {}", response.status()));
+        let status = response.status();
+        let mut body = response.text().await.unwrap_or_default();
+        if body.len() > 300 {
+            body.truncate(300);
+            body.push_str("…");
+        }
+        return Err(format!(
+            "Ollama error ({status}): {}",
+            if body.is_empty() {
+                "unknown error — check that the model is pulled (ollama pull)".to_string()
+            } else {
+                body
+            }
+        ));
     }
 
     let chat_resp: ChatResponse = response
@@ -129,5 +164,13 @@ pub async fn chat(
         .await
         .map_err(|e| format!("Invalid Ollama response: {e}"))?;
 
-    Ok(chat_resp.message.content)
+    let content = chat_resp.message.content.trim();
+    if content.is_empty() {
+        return Err(
+            "Ollama returned an empty response. Try selecting a different model in the sidebar."
+                .to_string(),
+        );
+    }
+
+    Ok(content.to_string())
 }

@@ -25,6 +25,7 @@ pub fn run() {
             commands::import_lichess_games,
             commands::list_games,
             commands::get_game_count,
+            commands::get_scouted_game_count,
             commands::get_player_stats,
             commands::lookup_uscf_member,
             commands::check_ollama_status,
@@ -40,6 +41,7 @@ pub fn run() {
             commands::search_opponents,
             commands::build_opponent_dossier,
             commands::backfill_openings,
+            commands::repair_scout_games,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

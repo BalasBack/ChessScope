@@ -3,7 +3,7 @@ use crate::import;
 use crate::models::{
     AccountSettings, AnalysisSummary, BlunderPuzzle, CoachMessage, GameAnalysis, GameRecord,
     ImportResult, OllamaStatus, OpponentCandidate, OpponentDossier, PlayerStatsSummary,
-    StockfishStatus, UscfMember,
+    RepairScoutResult, StockfishStatus, UscfMember,
 };
 use crate::scout;
 use std::sync::Mutex;
@@ -62,10 +62,11 @@ pub async fn import_lichess_games(
 pub fn list_games(
     limit: Option<u32>,
     offset: Option<u32>,
+    own_only: Option<bool>,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<Vec<GameRecord>, String> {
     with_db(&state, |db| {
-        db.list_games(limit.unwrap_or(50), offset.unwrap_or(0))
+        db.list_games(limit.unwrap_or(50), offset.unwrap_or(0), own_only)
             .map_err(|e| e.to_string())
     })
 }
@@ -73,6 +74,11 @@ pub fn list_games(
 #[tauri::command]
 pub fn get_game_count(state: State<'_, Mutex<AppState>>) -> Result<u32, String> {
     with_db(&state, |db| db.count_games().map_err(|e| e.to_string()))
+}
+
+#[tauri::command]
+pub fn get_scouted_game_count(state: State<'_, Mutex<AppState>>) -> Result<u32, String> {
+    with_db(&state, |db| db.count_scouted_games().map_err(|e| e.to_string()))
 }
 
 #[tauri::command]
@@ -255,4 +261,9 @@ pub async fn build_opponent_dossier(
 #[tauri::command]
 pub fn backfill_openings(state: State<'_, Mutex<AppState>>) -> Result<u32, String> {
     with_db(&state, |db| db.backfill_openings().map_err(|e| e.to_string()))
+}
+
+#[tauri::command]
+pub fn repair_scout_games(state: State<'_, Mutex<AppState>>) -> Result<RepairScoutResult, String> {
+    with_db(&state, |db| db.repair_scout_games().map_err(|e| e.to_string()))
 }

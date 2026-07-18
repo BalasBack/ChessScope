@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:web": "tsc && vite build --mode web && node scripts/copy-spa-404.mjs",
+    "postinstall": "node scripts/copy-stockfish.mjs",
+    "build:web": "node scripts/copy-stockfish.mjs && tsc && vite build --mode web && node scripts/copy-spa-404.mjs",
     "preview": "vite preview",
     "preview:web": "vite preview --outDir docs --base /ChessScope/",
     "tauri": "tauri",

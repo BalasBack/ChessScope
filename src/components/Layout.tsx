@@ -7,6 +7,7 @@ import {
   Search,
   Settings,
   Crown,
+  Award,
 } from "lucide-react";
 import { isWebApp } from "../lib/api";
 import { cn } from "../lib/utils";
@@ -17,23 +18,28 @@ const nav = [
   { to: "/coach", label: "AI Coach", icon: MessageSquare },
   { to: "/training", label: "Training", icon: Dumbbell },
   { to: "/scout", label: "Opponent Scout", icon: Search },
+  { to: "/uscf", label: "USCF Profile", icon: Award },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Layout() {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="flex w-56 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]">
-        <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-5">
-          <Crown className="h-6 w-6 text-[var(--color-accent)]" />
-          <div>
-            <div className="text-sm font-bold tracking-wide">ChessScope</div>
-            <div className="text-xs text-[var(--color-muted)]">
-              Tournament Prep
+    <div className="flex h-screen overflow-hidden bg-[var(--color-surface)]">
+      <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]">
+        <div className="border-b border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface-3)] px-5 py-6">
+          <div className="flex items-center gap-3">
+            <div className="accent-glow flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-accent)]/20">
+              <Crown className="h-5 w-5 text-[var(--color-accent)]" />
+            </div>
+            <div>
+              <div className="text-sm font-bold tracking-wide">ChessScope</div>
+              <div className="text-[11px] text-[var(--color-muted)]">
+                Tournament Prep
+              </div>
             </div>
           </div>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 p-3">
+        <nav className="flex flex-1 flex-col gap-0.5 p-3">
           {nav.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -41,9 +47,9 @@ export function Layout() {
               end={to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
                   isActive
-                    ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)]"
+                    ? "bg-[var(--color-accent)]/15 font-medium text-[var(--color-accent)] shadow-sm"
                     : "text-[var(--color-muted)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text)]",
                 )
               }
@@ -53,11 +59,14 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
+        <div className="border-t border-[var(--color-border)] p-4 text-[10px] text-[var(--color-muted)]">
+          {isWebApp() ? "Web edition" : "Desktop edition"}
+        </div>
       </aside>
       <main className="flex flex-1 flex-col overflow-hidden">
         {isWebApp() && (
-          <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/10 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
-            Web mode — games stay in your browser. AI Coach needs the{" "}
+          <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/8 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
+            Web mode — your games stay in this browser. AI Coach needs the{" "}
             <a
               href="https://github.com/BalasBack/ChessScope/releases"
               className="text-[var(--color-accent)] underline"

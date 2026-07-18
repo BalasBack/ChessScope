@@ -117,7 +117,7 @@ export async function getBlunderPuzzles(limit = 20): Promise<BlunderPuzzle[]> {
   const puzzles: BlunderPuzzle[] = [];
 
   for (const g of games) {
-    if (!g.analyzed_at) continue;
+    if (!g.is_own_game || !g.analyzed_at) continue;
     const a = await db.getAnalysis(g.id);
     if (!a) continue;
     for (const m of a.moves) {

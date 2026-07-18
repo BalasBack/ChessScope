@@ -9,6 +9,7 @@ export function Dashboard() {
   const [stats, setStats] = useState<PlayerStatsSummary | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisSummary | null>(null);
   const [gameCount, setGameCount] = useState(0);
+  const [scoutedCount, setScoutedCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -17,13 +18,15 @@ export function Dashboard() {
   const load = async () => {
     try {
       await api.backfillOpenings().catch(() => {});
-      const [s, count, a] = await Promise.all([
+      const [s, count, scouted, a] = await Promise.all([
         api.getPlayerStats(),
         api.getGameCount(),
+        api.getScoutedGameCount(),
         api.getAnalysisSummary(),
       ]);
       setStats(s);
       setGameCount(count);
+      setScoutedCount(scouted);
       setAnalysis(a);
     } catch (e) {
       setError(String(e));
@@ -66,11 +69,14 @@ export function Dashboard() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="flex items-center justify-between border-b border-[var(--color-border)] px-8 py-5">
+      <header className="page-header flex items-center justify-between border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
         <div>
           <h1 className="text-xl font-bold">Tournament Prep Hub</h1>
           <p className="text-sm text-[var(--color-muted)]">
-            Your readiness overview for serious OTB events
+            Stats below are from <strong className="text-[var(--color-text)]">your linked accounts</strong> only
+            {scoutedCount > 0 && (
+              <> · {scoutedCount} scouted opponent game{scoutedCount !== 1 ? "s" : ""} stored separately</>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -98,7 +104,7 @@ export function Dashboard() {
         )}
 
         <div className="grid grid-cols-4 gap-4">
-          <StatBox label="Games in DB" value={gameCount} />
+          <StatBox label="Your Games" value={gameCount} sub="Linked accounts only" />
           <StatBox
             label="Analyzed"
             value={analysis?.analyzed_games ?? 0}
@@ -141,7 +147,7 @@ export function Dashboard() {
         )}
 
         <div className="grid grid-cols-2 gap-6">
-          <Card title="Opening Repertoire — White">
+          <Card title="Your Openings — White">
             {stats && stats.openings_as_white.length > 0 ? (
               <div className="space-y-2">
                 {stats.openings_as_white.slice(0, 5).map((o) => (
@@ -166,7 +172,7 @@ export function Dashboard() {
             )}
           </Card>
 
-          <Card title="Opening Repertoire — Black">
+          <Card title="Your Openings — Black">
             {stats && stats.openings_as_black.length > 0 ? (
               <div className="space-y-2">
                 {stats.openings_as_black.slice(0, 5).map((o) => (
