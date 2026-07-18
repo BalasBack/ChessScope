@@ -8,6 +8,7 @@ import {
   Settings,
   Crown,
   Award,
+  CircleHelp,
 } from "lucide-react";
 import { isWebApp } from "../lib/api";
 import { cn } from "../lib/utils";
@@ -19,6 +20,7 @@ const nav = [
   { to: "/training", label: "Training", icon: Dumbbell },
   { to: "/scout", label: "Opponent Scout", icon: Search },
   { to: "/uscf", label: "USCF Profile", icon: Award },
+  { to: "/help", label: "Help", icon: CircleHelp },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -66,7 +68,11 @@ export function Layout() {
       <main className="flex flex-1 flex-col overflow-hidden">
         {isWebApp() && (
           <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/8 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
-            Web mode — games stay in this browser. AI Coach works here with no signup.{" "}
+            Web mode — games stay in this browser.{" "}
+            <NavLink to="/help" className="text-[var(--color-accent)] underline">
+              How to use
+            </NavLink>
+            {" · "}
             <a
               href="https://github.com/BalasBack/ChessScope/releases"
               className="text-[var(--color-accent)] underline"

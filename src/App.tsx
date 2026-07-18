@@ -7,6 +7,7 @@ import { Training } from "./pages/Training";
 import { OpponentScout } from "./pages/OpponentScout";
 import { UscfProfile } from "./pages/UscfProfile";
 import { SettingsPage } from "./pages/Settings";
+import { Help } from "./pages/Help";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/training" element={<Training />} />
           <Route path="/scout" element={<OpponentScout />} />
           <Route path="/uscf" element={<UscfProfile />} />
+          <Route path="/help" element={<Help />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
