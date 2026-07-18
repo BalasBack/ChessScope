@@ -1,6 +1,16 @@
 import type { UscfMember, UscfRating } from "./types";
 
+const SHORT_SYSTEM: Record<string, string> = {
+  R: "OTB Regular",
+  Q: "OTB Quick",
+  B: "OTB Blitz",
+  OR: "Online Regular",
+  OQ: "Online Quick",
+  OB: "Online Blitz",
+};
+
 function formatSystem(system: string): string {
+  if (SHORT_SYSTEM[system]) return SHORT_SYSTEM[system];
   return system
     .replace("OverTheBoard", "OTB ")
     .replace("Online", "Online ")
@@ -13,8 +23,22 @@ function findRating(
   member: UscfMember,
   ...systems: string[]
 ): UscfRating | undefined {
+  const aliases = systems.flatMap((s) => {
+    if (s.includes("OverTheBoardRegular") || s === "Regular")
+      return [s, "OverTheBoardRegular", "R"];
+    if (s.includes("OverTheBoardQuick") || s === "Quick")
+      return [s, "OverTheBoardQuick", "Q"];
+    if (s.includes("OverTheBoardBlitz") || s === "Blitz")
+      return [s, "OverTheBoardBlitz", "B"];
+    if (s.includes("OnlineRegular")) return [s, "OnlineRegular", "OR"];
+    if (s.includes("OnlineQuick")) return [s, "OnlineQuick", "OQ"];
+    if (s.includes("OnlineBlitz")) return [s, "OnlineBlitz", "OB"];
+    return [s];
+  });
   return member.ratings.find((r) =>
-    systems.some((s) => r.rating_system.includes(s)),
+    aliases.some(
+      (a) => r.rating_system === a || r.rating_system.includes(a),
+    ),
   );
 }
 

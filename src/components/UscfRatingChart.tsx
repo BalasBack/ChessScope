@@ -44,7 +44,13 @@ export function UscfRatingTrendChart({
 }) {
   const points = history
     .map((h) => {
-      const r = h.ratings.find((x) => x.rating_system === system);
+      const r = h.ratings.find(
+        (x) =>
+          x.rating_system === system ||
+          (system === "OverTheBoardRegular" &&
+            (x.rating_system === "R" ||
+              x.rating_system.includes("OverTheBoardRegular"))),
+      );
       return r?.rating != null ? { date: h.date, rating: r.rating } : null;
     })
     .filter((p): p is { date: string; rating: number } => p != null);

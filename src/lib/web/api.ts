@@ -10,6 +10,11 @@ import {
   getBlunderPuzzles,
   getPlayerStats,
 } from "./stats";
+import {
+  lookupUscfMember,
+  memberToCandidate,
+  searchUscfMembers,
+} from "./uscf-client";
 import type { ChessScopeApi, OpponentCandidate, OpponentDossier } from "../types";
 
 async function searchLichess(query: string): Promise<OpponentCandidate[]> {
@@ -112,34 +117,7 @@ export const webApi: ChessScopeApi = {
   getPlayerStats,
   backfillOpenings,
 
-  lookupUscf: async (uscfId) => {
-    const res = await fetch(
-      `https://ratings-api.uschess.org/api/v1/members/${encodeURIComponent(uscfId)}`,
-    );
-    if (!res.ok) throw new Error(`USCF lookup failed (${res.status})`);
-    const m = await res.json();
-    return {
-      id: m.id,
-      first_name: m.firstName,
-      last_name: m.lastName,
-      state: m.stateRep ?? null,
-      fide_id: m.fideId ?? null,
-      status: m.status ?? null,
-      ratings: (m.ratings ?? []).map(
-        (r: {
-          ratingSystem: string;
-          rating?: number;
-          gamesPlayed?: number;
-          isProvisional: boolean;
-        }) => ({
-          rating_system: r.ratingSystem,
-          rating: r.rating ?? null,
-          games_played: r.gamesPlayed ?? null,
-          is_provisional: r.isProvisional,
-        }),
-      ),
-    };
-  },
+  lookupUscf: (uscfId) => lookupUscfMember(uscfId),
 
   checkOllama: async () => checkWebCoach(),
 
@@ -175,10 +153,13 @@ export const webApi: ChessScopeApi = {
 
   searchOpponents: async (query, sources) => {
     const want = (src: string) =>
-      !sources?.length || sources.some((s) => s.toLowerCase() === src.toLowerCase());
+      !sources?.length ||
+      sources.some((s) => s.toLowerCase() === src.toLowerCase());
     const results: OpponentCandidate[] = [];
-    if (want("uscf") || want("online")) {
-      /* USCF name search needs backend — skip on web */
+
+    if (want("uscf")) {
+      const members = await searchUscfMembers(query, 12);
+      results.push(...members.map(memberToCandidate));
     }
     if (want("lichess") || want("online")) {
       results.push(...(await searchLichess(query)));
@@ -187,7 +168,11 @@ export const webApi: ChessScopeApi = {
       results.push(...(await searchChesscom(query)));
     }
     if (!results.length) {
-      throw new Error(`No opponents found for "${query}" (web: try Lichess/Chess.com username)`);
+      throw new Error(
+        want("uscf") && !want("online") && !want("lichess") && !want("chesscom")
+          ? `No USCF members found for "${query}"`
+          : `No opponents found for "${query}" (try a Lichess/Chess.com username or USCF name/ID)`,
+      );
     }
     return results;
   },
