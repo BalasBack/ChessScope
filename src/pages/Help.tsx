@@ -110,13 +110,13 @@ export function Help() {
       <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
         <h1 className="text-xl font-bold">Help</h1>
         <p className="text-sm text-[var(--color-muted)]">
-          How to use ScoutNScore for chess tournament prep
-          {web ? " (web edition)" : " (desktop edition)"}
+          How to use ScoutNScore for Chess Tournament Prep
+          {web ? " (Web Edition)" : " (Desktop Edition)"}
         </p>
       </header>
 
       <div className="mx-auto w-full max-w-2xl space-y-6 p-8">
-        <Card title="Quick start">
+        <Card title="Quick Start">
           <ol className="space-y-4">
             {quickStart.map((step) => (
               <li key={step.title} className="flex gap-3">

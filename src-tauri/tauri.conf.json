@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "ScoutNScore — chess tournament prep",
+        "title": "ScoutNScore — Chess Tournament Prep",
         "width": 1280,
         "height": 860,
         "minWidth": 960,

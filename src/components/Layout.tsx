@@ -36,7 +36,7 @@ export function Layout() {
             <div>
               <div className="text-sm font-bold tracking-wide">ScoutNScore</div>
               <div className="text-[11px] text-[var(--color-muted)]">
-                chess tournament prep
+                Chess Tournament Prep
               </div>
               <a
                 href="https://www.youtube.com/channel/UCGhv2Iena67AWNrxHr5Cqow"
@@ -44,7 +44,7 @@ export function Layout() {
                 target="_blank"
                 rel="noreferrer"
               >
-                by BalasBack
+                By BalasBack
               </a>
             </div>
           </div>
@@ -70,7 +70,7 @@ export function Layout() {
           ))}
         </nav>
         <div className="border-t border-[var(--color-border)] p-4 text-[10px] text-[var(--color-muted)]">
-          {isWebApp() ? "Web edition" : "Desktop edition"}
+          {isWebApp() ? "Web Edition" : "Desktop Edition"}
         </div>
       </aside>
       <main className="flex flex-1 flex-col overflow-hidden">
@@ -78,7 +78,7 @@ export function Layout() {
           <div className="border-b border-[var(--color-border)] bg-[var(--color-accent)]/8 px-4 py-2 text-center text-xs text-[var(--color-muted)]">
             Web mode — games stay in this browser.{" "}
             <NavLink to="/help" className="text-[var(--color-accent)] underline">
-              How to use
+              How To Use
             </NavLink>
             {" · "}
             <a
