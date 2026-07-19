@@ -1,14 +1,14 @@
-# ChessScope
+# ScoutNScore
 
-**ChessScope** is tournament prep software for serious chess players — available as a **Windows desktop app** and a **web app**.
+**ScoutNScore** (by [BalasBack](https://www.youtube.com/channel/UCGhv2Iena67AWNrxHr5Cqow)) is chess tournament prep software for serious players — available as a **Windows desktop app** and a **web app**.
 
 | | Desktop (Windows) | Web |
 |---|---|---|
 | **Run** | Install `.msi` / `.exe` or `npm run tauri dev` | [balasback.github.io/ChessScope](https://balasback.github.io/ChessScope/) |
 | **Storage** | Local SQLite | Browser IndexedDB |
 | **Analysis** | Stockfish (native) | Stockfish WASM |
-| **AI Coach** | Ollama (local LLM) | Desktop only |
-| **Opponent scout** | USCF, FIDE, ChessGames, Lichess, Chess.com | Lichess & Chess.com |
+| **AI Coach** | Ollama (local LLM) | Free cloud coach (no signup) |
+| **Opponent scout** | USCF, FIDE, ChessGames, Lichess, Chess.com | USCF, Lichess & Chess.com |
 
 ## Features
 

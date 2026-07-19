@@ -40,7 +40,7 @@ export async function checkWebCoach(): Promise<OllamaStatus> {
 }
 
 function systemPrompt(profileSummary: string): string {
-  return `You are ChessScope AI Coach for USCF/FIDE tournament prep. Be concrete and actionable. Keep answers to 2-4 short paragraphs unless asked for more.
+  return `You are ScoutNScore AI Coach for USCF/FIDE chess tournament prep. Be concrete and actionable. Keep answers to 2-4 short paragraphs unless asked for more.
 
 PLAYER STATS:
 ${profileSummary}`;

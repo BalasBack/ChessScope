@@ -110,7 +110,7 @@ export async function warmupModel(model: string): Promise<void> {
 }
 
 function buildSystemPrompt(profileSummary: string): string {
-  return `You are ChessScope AI Coach for USCF/FIDE tournament prep.
+  return `You are ScoutNScore AI Coach for USCF/FIDE chess tournament prep.
 Be concrete and actionable. Keep answers to 2-4 short paragraphs unless asked for more.
 
 PLAYER STATS:

@@ -71,7 +71,7 @@ export function Dashboard() {
     <div className="flex h-full flex-col overflow-auto">
       <header className="page-header flex items-center justify-between border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
         <div>
-          <h1 className="text-xl font-bold">Tournament Prep Hub</h1>
+          <h1 className="text-xl font-bold">Chess tournament prep hub</h1>
           <p className="text-sm text-[var(--color-muted)]">
             Stats below are from <strong className="text-[var(--color-text)]">your linked accounts</strong> only
             {scoutedCount > 0 && (

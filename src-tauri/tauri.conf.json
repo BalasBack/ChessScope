@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ChessScope",
+  "productName": "ScoutNScore",
   "version": "0.1.0",
   "identifier": "com.chessscope.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "ChessScope — Tournament Prep",
+        "title": "ScoutNScore — chess tournament prep",
         "width": 1280,
         "height": 860,
         "minWidth": 960,

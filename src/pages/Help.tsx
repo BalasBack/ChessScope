@@ -46,7 +46,7 @@ export function Help() {
     },
     {
       title: "2. Sync your games",
-      body: "On the Dashboard, click Sync games. ChessScope imports recent games from your linked accounts (not opponent scout imports).",
+      body: "On the Dashboard, click Sync games. ScoutNScore imports recent games from your linked accounts (not opponent scout imports).",
       to: "/",
       linkLabel: "Dashboard",
       icon: LayoutDashboard,
@@ -110,7 +110,7 @@ export function Help() {
       <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
         <h1 className="text-xl font-bold">Help</h1>
         <p className="text-sm text-[var(--color-muted)]">
-          How to use ChessScope for tournament prep
+          How to use ScoutNScore for chess tournament prep
           {web ? " (web edition)" : " (desktop edition)"}
         </p>
       </header>

@@ -34,10 +34,18 @@ export function Layout() {
               <Crown className="h-5 w-5 text-[var(--color-accent)]" />
             </div>
             <div>
-              <div className="text-sm font-bold tracking-wide">ChessScope</div>
+              <div className="text-sm font-bold tracking-wide">ScoutNScore</div>
               <div className="text-[11px] text-[var(--color-muted)]">
-                Tournament Prep
+                chess tournament prep
               </div>
+              <a
+                href="https://www.youtube.com/channel/UCGhv2Iena67AWNrxHr5Cqow"
+                className="mt-1 inline-block text-[11px] text-[var(--color-accent)] hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                by BalasBack
+              </a>
             </div>
           </div>
         </div>
