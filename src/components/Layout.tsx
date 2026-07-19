@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { isWebApp } from "../lib/api";
 import { cn } from "../lib/utils";
+import { WelcomeModal } from "./WelcomeModal";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -27,6 +28,7 @@ const nav = [
 export function Layout() {
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--color-surface)]">
+      <WelcomeModal />
       <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]">
         <div className="border-b border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface-3)] px-5 py-6">
           <div className="flex items-center gap-3">
