@@ -1,8 +1,8 @@
 https://balasback.github.io/ScoutNScore/
-https://balasback.github.io/ScoutNScore/help
-https://balasback.github.io/ScoutNScore/analysis
-https://balasback.github.io/ScoutNScore/coach
-https://balasback.github.io/ScoutNScore/training
-https://balasback.github.io/ScoutNScore/scout
-https://balasback.github.io/ScoutNScore/uscf
-https://balasback.github.io/ScoutNScore/settings
+https://balasback.github.io/ScoutNScore/help/
+https://balasback.github.io/ScoutNScore/analysis/
+https://balasback.github.io/ScoutNScore/coach/
+https://balasback.github.io/ScoutNScore/training/
+https://balasback.github.io/ScoutNScore/scout/
+https://balasback.github.io/ScoutNScore/uscf/
+https://balasback.github.io/ScoutNScore/settings/
