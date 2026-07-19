@@ -4,7 +4,7 @@
 
 | | Desktop (Windows) | Web |
 |---|---|---|
-| **Run** | Install `.msi` / `.exe` or `npm run tauri dev` | [balasback.github.io/ChessScope](https://balasback.github.io/ChessScope/) |
+| **Run** | Install `.msi` / `.exe` or `npm run tauri dev` | [balasback.github.io/ScoutNScore](https://balasback.github.io/ScoutNScore/) |
 | **Storage** | Local SQLite | Browser IndexedDB |
 | **Analysis** | Stockfish (native) | Stockfish WASM |
 | **AI Coach** | Ollama (local LLM) | Free cloud coach (no signup) |
@@ -69,7 +69,7 @@ Upload to **GitHub Releases** so the web app’s download link works.
 
 ## Web app (GitHub Pages)
 
-The full UI runs in the browser — import, dashboard, analysis, training, and opponent search (Lichess/Chess.com). Data stays in your browser; nothing is sent to a ChessScope server.
+The full UI runs in the browser — import, dashboard, analysis, training, and opponent search (Lichess/Chess.com). Data stays in your browser; nothing is sent to a ScoutNScore server.
 
 ### Build & deploy
 
@@ -82,7 +82,7 @@ git push
 
 On GitHub: **Settings → Pages → Deploy from branch `main`, folder `/docs`**.
 
-Live at: **https://balasback.github.io/ChessScope/**
+Live at: **https://balasback.github.io/ScoutNScore/**
 
 After changing frontend code, run `npm run build:web` again and push `docs/`.
 

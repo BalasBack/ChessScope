@@ -137,7 +137,7 @@ export function Help() {
           </ol>
         </Card>
 
-        <Card title="What each page does">
+        <Card title="What Each Page Does">
           <div className="space-y-5">
             {features.map((f) => (
               <div key={f.title} className="flex gap-3">
@@ -156,7 +156,7 @@ export function Help() {
           </div>
         </Card>
 
-        <Card title={web ? "Web vs desktop" : "Desktop vs web"}>
+        <Card title={web ? "Web vs Desktop" : "Desktop vs Web"}>
           <div className="space-y-3 text-sm text-[var(--color-muted)]">
             {web ? (
               <>
@@ -179,7 +179,7 @@ export function Help() {
                   </a>
                   .{" "}
                   <a
-                    href="https://github.com/BalasBack/ChessScope/releases"
+                    href="https://github.com/BalasBack/ScoutNScore/releases"
                     className="text-[var(--color-accent)] underline"
                     target="_blank"
                     rel="noreferrer"
@@ -206,7 +206,7 @@ export function Help() {
           </div>
         </Card>
 
-        <Card title="Tips & troubleshooting">
+        <Card title="Tips & Troubleshooting">
           <ul className="list-disc space-y-2 pl-5 text-sm text-[var(--color-muted)]">
             <li>
               <strong className="text-[var(--color-text)]">Own games vs scouted:</strong>{" "}

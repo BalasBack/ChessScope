@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const isWebDeploy = mode === "web";
   return {
     plugins: [react(), tailwindcss()],
-    base: isWebDeploy ? "/ChessScope/" : "/",
+    base: isWebDeploy ? "/ScoutNScore/" : "/",
     build: isWebDeploy
       ? { outDir: "docs", emptyOutDir: true }
       : undefined,

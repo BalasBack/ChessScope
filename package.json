@@ -9,7 +9,7 @@
     "postinstall": "node scripts/copy-stockfish.mjs",
     "build:web": "node scripts/copy-stockfish.mjs && tsc && vite build --mode web && node scripts/copy-spa-404.mjs",
     "preview": "vite preview",
-    "preview:web": "vite preview --outDir docs --base /ChessScope/",
+    "preview:web": "vite preview --outDir docs --base /ScoutNScore/",
     "tauri": "tauri",
     "dev:app": "powershell -ExecutionPolicy Bypass -File scripts/dev.ps1"
   },

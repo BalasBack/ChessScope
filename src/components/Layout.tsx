@@ -82,7 +82,7 @@ export function Layout() {
             </NavLink>
             {" · "}
             <a
-              href="https://github.com/BalasBack/ChessScope/releases"
+              href="https://github.com/BalasBack/ScoutNScore/releases"
               className="text-[var(--color-accent)] underline"
               target="_blank"
               rel="noreferrer"
