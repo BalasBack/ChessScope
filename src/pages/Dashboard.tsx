@@ -69,7 +69,7 @@ export function Dashboard() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="page-header flex items-center justify-between border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
+      <header className="page-header flex flex-col gap-4 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div>
           <h1 className="text-xl font-bold">Chess Tournament Prep Hub</h1>
           <p className="text-sm text-[var(--color-muted)]">
@@ -79,19 +79,19 @@ export function Dashboard() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={handleAnalyze} loading={analyzing}>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={handleAnalyze} loading={analyzing} className="flex-1 sm:flex-none">
             <Cpu className="h-4 w-4" />
             Analyze Games
           </Button>
-          <Button onClick={handleSync} loading={syncing}>
+          <Button onClick={handleSync} loading={syncing} className="flex-1 sm:flex-none">
             <RefreshCw className="h-4 w-4" />
             Sync Games
           </Button>
         </div>
       </header>
 
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-6 p-4 sm:p-8">
         {message && (
           <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
             {message}
@@ -103,7 +103,7 @@ export function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatBox label="Your Games" value={gameCount} sub="Linked accounts only" />
           <StatBox
             label="Analyzed"
@@ -146,7 +146,7 @@ export function Dashboard() {
           </Card>
         )}
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Card title="Your Openings — White">
             {stats && stats.openings_as_white.length > 0 ? (
               <div className="space-y-2">
@@ -200,7 +200,7 @@ export function Dashboard() {
 
         <Card title="Performance by Time Control">
           {stats && stats.by_time_class.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {stats.by_time_class.map((tc) => (
                 <div
                   key={tc.time_class}

@@ -77,16 +77,16 @@ export function UscfProfile() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
+      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-4 py-5 sm:px-8">
         <h1 className="text-xl font-bold">USCF Profile</h1>
         <p className="text-sm text-[var(--color-muted)]">
           Ratings, trends, and AI-powered tournament prep for your USCF record
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-4xl space-y-6 p-8">
+      <div className="mx-auto w-full max-w-4xl space-y-6 p-4 sm:p-8">
         <Card title="Member lookup">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <div className="flex-1">
               <Label>USCF member ID</Label>
               <Input
@@ -97,7 +97,7 @@ export function UscfProfile() {
               />
             </div>
             <div className="flex items-end">
-              <Button onClick={() => lookup()} loading={loading}>
+              <Button onClick={() => lookup()} loading={loading} className="w-full sm:w-auto">
                 <Search className="h-4 w-4" />
                 Look up
               </Button>
@@ -144,8 +144,8 @@ export function UscfProfile() {
             </div>
 
             <Card title="Ratings detail">
-              <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+                <table className="w-full min-w-[320px] text-sm">
                   <thead className="bg-[var(--color-surface-3)] text-xs text-[var(--color-muted)]">
                     <tr>
                       <th className="px-3 py-2 text-left">System</th>

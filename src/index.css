@@ -66,11 +66,28 @@ body {
   background: var(--color-surface);
   color: var(--color-text);
   min-height: 100vh;
+  min-height: 100dvh;
   transition: background 0.25s ease, color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+/* Prevent iOS zoom on form focus for controls ≥16px on small screens */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 [data-compact="true"] .page-header {

@@ -105,8 +105,8 @@ export function Coach() {
   const canSend = !!status?.connected && !warming;
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="border-b border-[var(--color-border)] px-8 py-5">
+    <div className="flex h-full min-h-0 flex-col">
+      <header className="border-b border-[var(--color-border)] px-4 py-5 sm:px-8">
         <h1 className="text-xl font-bold">AI Coach</h1>
         <p className="text-sm text-[var(--color-muted)]">
           {web
@@ -115,10 +115,10 @@ export function Coach() {
         </p>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col">
           {status && !status.connected && (
-            <div className="border-b border-amber-500/30 bg-amber-500/10 px-8 py-3 text-sm text-amber-200">
+            <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 sm:px-8">
               {status?.error ??
                 (web
                   ? "AI coach is temporarily unavailable. Try again in a moment, or use the desktop app with Ollama."
@@ -127,18 +127,18 @@ export function Coach() {
           )}
 
           {warming && (
-            <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-8 py-2 text-xs text-[var(--color-muted)]">
+            <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-2 text-xs text-[var(--color-muted)] sm:px-8">
               Loading model into memory…
             </div>
           )}
 
           {loading && !streamText && (
-            <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-8 py-2 text-xs text-[var(--color-muted)]">
+            <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-2 text-xs text-[var(--color-muted)] sm:px-8">
               Generating…
             </div>
           )}
 
-          <div className="flex-1 overflow-auto px-8 py-6">
+          <div className="flex-1 overflow-auto px-4 py-6 sm:px-8">
             {messages.length === 0 && !streamText ? (
               <div className="mx-auto max-w-xl space-y-4 pt-8">
                 <div className="text-center text-[var(--color-muted)]">
@@ -209,7 +209,7 @@ export function Coach() {
             )}
           </div>
 
-          <div className="border-t border-[var(--color-border)] px-8 py-4">
+          <div className="border-t border-[var(--color-border)] px-4 py-4 sm:px-8">
             <form
               className="mx-auto flex max-w-2xl gap-2"
               onSubmit={(e) => {
@@ -234,7 +234,7 @@ export function Coach() {
           </div>
         </div>
 
-        <aside className="w-64 shrink-0 space-y-4 border-l border-[var(--color-border)] p-4">
+        <aside className="shrink-0 space-y-4 border-t border-[var(--color-border)] p-4 lg:w-64 lg:border-l lg:border-t-0">
           <Card title={web ? "Cloud coach" : "Model"}>
             {web ? (
               <p className="text-xs text-[var(--color-muted)]">

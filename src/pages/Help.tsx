@@ -107,7 +107,7 @@ export function Help() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
+      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-4 py-5 sm:px-8">
         <h1 className="text-xl font-bold">Help</h1>
         <p className="text-sm text-[var(--color-muted)]">
           How to use ScoutNScore for Chess Tournament Prep
@@ -115,7 +115,7 @@ export function Help() {
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl space-y-6 p-8">
+      <div className="mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-8">
         <Card title="Quick Start">
           <ol className="space-y-4">
             {quickStart.map((step) => (

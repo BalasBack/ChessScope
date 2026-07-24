@@ -20,7 +20,7 @@ import {
   parsePgnGame,
   START_FEN,
 } from "../lib/chess";
-import { formatResult, resultColor } from "../lib/utils";
+import { formatResult, resultColor, cn } from "../lib/utils";
 
 /** Absolute position eval for the current board index (not relative to last move). */
 function positionEvalAt(
@@ -166,7 +166,7 @@ export function Analysis() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[var(--color-surface)]">
-      <header className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+      <header className="flex shrink-0 flex-col gap-3 border-b border-[var(--color-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <h1 className="text-lg font-bold">Game Analysis</h1>
           <p className="text-xs text-[var(--color-muted)]">
@@ -174,7 +174,7 @@ export function Analysis() {
           </p>
         </div>
         {selected && (
-          <Button onClick={handleAnalyze} loading={analyzing} disabled={analyzing}>
+          <Button onClick={handleAnalyze} loading={analyzing} disabled={analyzing} className="w-full sm:w-auto">
             <Cpu className="h-4 w-4" />
             {selected.analyzed ? "Re-analyze" : "Analyze"}
           </Button>
@@ -192,9 +192,16 @@ export function Analysis() {
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* Game list */}
-        <aside className="w-72 shrink-0 overflow-auto border-r border-[var(--color-border)] bg-[var(--color-surface-2)]/50">
+        <aside
+          className={cn(
+            "shrink-0 overflow-auto border-[var(--color-border)] bg-[var(--color-surface-2)]/50",
+            selected
+              ? "max-h-44 border-b lg:max-h-none lg:w-72 lg:border-b-0 lg:border-r"
+              : "min-h-0 flex-1 border-b lg:w-72 lg:flex-none lg:border-b-0 lg:border-r",
+          )}
+        >
           <div className="flex border-b border-[var(--color-border)] p-2 gap-1">
             {(["mine", "scouted"] as const).map((f) => (
               <button
@@ -271,7 +278,7 @@ export function Analysis() {
         {selected ? (
           <>
             {/* Board panel */}
-            <main className="flex min-w-0 flex-1 flex-col items-center justify-center gap-4 overflow-auto p-6">
+            <main className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-4 overflow-auto p-4 sm:p-6">
               <div className="w-full max-w-lg">
                 <div className="mb-4 flex items-start justify-between gap-4">
                   <div>
@@ -352,7 +359,7 @@ export function Analysis() {
             </main>
 
             {/* Move list */}
-            <aside className="w-64 shrink-0 overflow-auto border-l border-[var(--color-border)] bg-[var(--color-surface-2)]/30 p-3">
+            <aside className="max-h-52 shrink-0 overflow-auto border-t border-[var(--color-border)] bg-[var(--color-surface-2)]/30 p-3 lg:max-h-none lg:w-64 lg:border-l lg:border-t-0">
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">
                 Moves
               </div>
@@ -412,7 +419,7 @@ export function Analysis() {
             </aside>
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center text-[var(--color-muted)]">
+          <div className="hidden flex-1 items-center justify-center text-[var(--color-muted)] lg:flex">
             Select a game to review
           </div>
         )}

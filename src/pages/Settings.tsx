@@ -84,14 +84,14 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-8 py-5">
+      <header className="page-header border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface-2)] to-transparent px-4 py-5 sm:px-8">
         <h1 className="text-xl font-bold">Settings</h1>
         <p className="text-sm text-[var(--color-muted)]">
           Appearance, your accounts, and analysis preferences
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-xl space-y-6 p-8">
+      <div className="mx-auto w-full max-w-xl space-y-6 p-4 sm:p-8">
         <Card title="Appearance">
           <div className="space-y-4">
             <div>

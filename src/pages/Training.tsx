@@ -122,14 +122,14 @@ export function Training() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="flex items-center justify-between border-b border-[var(--color-border)] px-8 py-5">
+      <header className="flex flex-col gap-3 border-b border-[var(--color-border)] px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div>
           <h1 className="text-xl font-bold">Training</h1>
           <p className="text-sm text-[var(--color-muted)]">
             Fix your mistakes — puzzles from your own blunders
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {queue.length > 0 && (
             <span className="text-sm text-[var(--color-muted)]">
               {solvedCount} solved · {queue.length} remaining
@@ -142,7 +142,7 @@ export function Training() {
         </div>
       </header>
 
-      <div className="space-y-6 p-8">
+      <div className="space-y-6 p-4 sm:p-8">
         {message && !puzzle && (
           <Card>
             <div className="flex items-center gap-4 py-4">
@@ -153,7 +153,7 @@ export function Training() {
         )}
 
         {puzzle && (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card title="Find the best move">
               <div className="mx-auto max-w-[420px]">
                 <ChessBoardView

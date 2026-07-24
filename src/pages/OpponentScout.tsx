@@ -406,15 +406,15 @@ export function OpponentScout() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <header className="border-b border-[var(--color-border)] px-8 py-5">
+      <header className="border-b border-[var(--color-border)] px-4 py-5 sm:px-8">
         <h1 className="text-xl font-bold">Opponent Scout</h1>
         <p className="text-sm text-[var(--color-muted)]">
           Search one database at a time to find opponents for tournament prep
         </p>
       </header>
 
-      <div className="space-y-6 p-8">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="space-y-6 p-4 sm:p-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Card title="Search by USCF ID">
             <div className="space-y-3">
               <div>
